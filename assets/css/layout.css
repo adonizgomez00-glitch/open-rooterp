@@ -1,0 +1,36 @@
+/**
+ * layout.css — ERP Ligero Offline
+ *
+ * Estructura base: sidebar + header + main content.
+ * Sistema de grid para el layout principal.
+ */
+
+html, body {
+  height: 100%;
+}
+
+#app {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-rows: var(--header-height) 1fr;
+  grid-template-areas:
+    'sidebar header'
+    'sidebar main';
+  height: 100vh;
+}
+
+.main-content {
+  grid-area: main;
+  padding: 1.5rem;
+  overflow-y: auto;
+  background: var(--color-bg);
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-lg);
+}

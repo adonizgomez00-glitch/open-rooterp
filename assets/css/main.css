@@ -1,0 +1,12 @@
+/**
+ * main.css — ERP Ligero Offline
+ *
+ * Punto de entrada que importa todos los partials CSS.
+ * Orden: reset → variables → layout → components → utilities.
+ */
+
+@import url('reset.css');
+@import url('variables.css');
+@import url('layout.css');
+@import url('components.css');
+@import url('utilities.css');

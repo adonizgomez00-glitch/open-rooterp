@@ -1,0 +1,13 @@
+/**
+ * reset.css — ERP Ligero Offline
+ *
+ * Normalización básica entre navegadores.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}

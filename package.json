@@ -1,0 +1,17 @@
+{
+  "name": "erp-ligero-offline",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "ERP Ligero Offline — Sistema ERP 100% offline sin frameworks",
+  "scripts": {
+    "test": "node tests/run-all.js",
+    "test:e2e": "node tests/e2e/run-e2e.js",
+    "start": "python3 -m http.server 3000"
+  },
+  "dependencies": {
+    "dexie": "^4.4.4"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.1"
+  }
+}

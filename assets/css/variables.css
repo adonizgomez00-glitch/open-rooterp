@@ -1,0 +1,174 @@
+/**
+ * variables.css — ERP Ligero Offline
+ *
+ * Custom Properties del sistema de diseño.
+ * Colores, tipografía, espaciado, sombras y bordes.
+ */
+
+:root {
+  --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
+  --color-primary-light: #dbeafe;
+  --color-danger: #dc2626;
+  --color-danger-light: #fef2f2;
+  --color-success: #16a34a;
+  --color-success-light: #f0fdf4;
+  --color-warning: #d97706;
+  --color-warning-light: #fffbeb;
+  --color-info: #0891b2;
+  --color-info-light: #ecfeff;
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-sidebar-bg: #1e293b;
+  --color-sidebar-text: #cbd5e1;
+  --color-sidebar-hover: #334155;
+  --color-sidebar-active: #2563eb;
+  --color-text: #1e293b;
+  --color-text-secondary: #64748b;
+  --color-border: #e2e8f0;
+  --color-input-border: #7f94b0;
+  --color-input-focus: #2563eb;
+  --color-input-error: #dc2626;
+  --color-muted: #64748b;
+  --color-bg-secondary: #f1f5f9;
+  --color-overlay: rgba(0, 0, 0, 0.5);
+  --font-family: system-ui, -apple-system, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --radius: 0.5rem;
+  --radius-sm: 0.25rem;
+  --radius-lg: 0.75rem;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --sidebar-width: 260px;
+  --header-height: 64px;
+  --z-sidebar: 100;
+  --z-header: 200;
+  --z-modal: 300;
+  --z-toast: 400;
+  --z-loader: 500;
+  --transition: 0.2s ease;
+}
+
+.theme-dark {
+  --color-primary-light: #1e3a5f;
+  --color-danger-light: #3b1a1a;
+  --color-success-light: #1a3b2a;
+  --color-warning-light: #3b2f1a;
+  --color-info-light: #1a3b3b;
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-sidebar-bg: #0f172a;
+  --color-sidebar-text: #94a3b8;
+  --color-sidebar-hover: #1e293b;
+  --color-text: #e2e8f0;
+  --color-text-secondary: #94a3b8;
+  --color-border: #334155;
+  --color-input-border: #8a9bb8;
+  --color-input-focus: #3b82f6;
+  --color-input-error: #ef4444;
+  --color-muted: #94a3b8;
+  --color-bg-secondary: #1e293b;
+  --color-overlay: rgba(0, 0, 0, 0.7);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+}
+
+body {
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.theme-dark body {
+  background: var(--color-bg);
+}
+
+.theme-dark .table__row:hover {
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.theme-dark .auth-container {
+  background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+}
+
+.theme-dark .loader__message {
+  color: #f1f5f9;
+}
+
+.theme-dark .status--ok {
+  background: var(--color-success);
+  color: #fff;
+}
+
+.theme-dark .status--low {
+  background: var(--color-warning);
+  color: #fff;
+}
+
+.theme-dark .status--critical {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.theme-dark .report-stat--ok strong {
+  background: var(--color-success);
+  color: #fff;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+}
+
+.theme-dark .report-stat--low strong {
+  background: var(--color-warning);
+  color: #fff;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+}
+
+.theme-dark .report-stat--critical strong {
+  background: var(--color-danger);
+  color: #fff;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+}
+
+.theme-dark .import-results__badge--success {
+  background: var(--color-success);
+  color: #fff;
+}
+
+.theme-dark .import-results__badge--warning {
+  background: var(--color-warning);
+  color: #fff;
+}
+
+.theme-dark .btn--ghost-danger {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.theme-dark .btn--ghost-danger:hover:not(:disabled) {
+  background: #b91c1c;
+  color: #fff;
+}
+
+.theme-dark .acct-total-ok {
+  background: var(--color-success);
+  color: #fff;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.theme-dark .acct-total-error {
+  background: var(--color-danger);
+  color: #fff;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  display: inline-block;
+}

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ERP Tests</title>
+  <style>
+    body { font-family: monospace; padding: 2rem; background: #1e293b; color: #e2e8f0; }
+    .pass { color: #16a34a; }
+    .fail { color: #dc2626; }
+    .summary { margin-top: 1rem; padding: 1rem; border-top: 1px solid #334155; }
+  </style>
+</head>
+<body>
+  <h1>ERP Ligero — Tests</h1>
+  <div id="output"></div>
+  <script type="module">
+    const output = document.getElementById('output')
+
+    function log(text, className = '') {
+      const p = document.createElement('p')
+      p.className = className
+      p.textContent = text
+      output.appendChild(p)
+    }
+
+    // Patch console.log to also show in DOM
+    const originalLog = console.log
+    console.log = (...args) => {
+      originalLog(...args)
+      log(args.join(' '))
+    }
+
+    const originalError = console.error
+    console.error = (...args) => {
+      originalError(...args)
+      log('ERROR: ' + args.join(' '), 'fail')
+    }
+
+    async function main() {
+      log('=== Iniciando tests ===\n')
+
+      let totalTests = 0
+      let passedTests = 0
+      let failedTests = 0
+
+      const testModules = [
+        { name: 'ProductService', path: './services/ProductService.test.js', fn: 'runProductServiceTests' },
+        { name: 'ProductController', path: './controllers/ProductController.test.js', fn: 'runProductControllerTests' },
+        { name: 'CustomerService', path: './services/CustomerService.test.js', fn: 'runCustomerServiceTests' },
+        { name: 'CustomerController', path: './controllers/CustomerController.test.js', fn: 'runCustomerControllerTests' },
+        { name: 'InventoryService', path: './services/InventoryService.test.js', fn: 'runInventoryServiceTests' },
+        { name: 'InventoryController', path: './controllers/InventoryController.test.js', fn: 'runInventoryControllerTests' }
+      ]
+
+      for (const mod of testModules) {
+        try {
+          const testMod = await import(mod.path)
+          if (testMod[mod.fn]) {
+            await testMod[mod.fn]()
+            passedTests++
+          }
+        } catch (error) {
+          failedTests++
+          log(`✗ ${mod.name} — falló al cargar: ${error.message}`, 'fail')
+          console.error(error.stack)
+        }
+      }
+
+      log('\n=== Resumen ===')
+      log(`Total módulos: ${testModules.length}`)
+      log(`Pasaron: ${passedTests}`, 'pass')
+      log(`Fallaron: ${failedTests}`, failedTests > 0 ? 'fail' : 'pass')
+    }
+
+    main()
+  </script>
+</body>
+</html>

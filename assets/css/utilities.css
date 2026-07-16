@@ -1,0 +1,25 @@
+/**
+ * utilities.css — ERP Ligero Offline
+ *
+ * Clases auxiliares de propósito general.
+ * Display, spacing, text alignment, visibility, etc.
+ */
+
+.text-bold { font-weight: 700; }
+.text-semibold { font-weight: 600; }
+
+.mb-1 { margin-bottom: 1rem; }
+
+.btn--ghost-danger {
+  background: none;
+  color: var(--color-danger);
+  border-color: transparent;
+}
+.btn--ghost-danger:hover:not(:disabled) {
+  background: var(--color-bg);
+  color: #b91c1c;
+}
+
+.table__th--w60 { width: 60px; }
+.table__th--w80 { width: 80px; }
+.table__th--w100 { width: 100px; }
