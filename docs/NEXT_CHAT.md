@@ -1,4 +1,4 @@
-# Resumen de Continuidad — v1.0.0
+# Resumen de Continuidad — Open RootERP v1.0.0
 
 ## Estado actual (Jul 16 2026)
 

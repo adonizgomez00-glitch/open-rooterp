@@ -1,3 +1,22 @@
+/*
+ * Open RootERP — ERP 100% offline, open source, libre y gratuito
+ * Copyright (C) 2024 Adónis Adonai Gómez Martínez <adonizgomez00@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 import { db } from './database/db.js'
 import { seedData } from './database/seed.js'
 import { ProductRepository } from './repositories/ProductRepository.js'
@@ -141,7 +160,7 @@ async function main() {
       sidebarItems.push({ id: 'users', label: 'Usuarios', icon: '\u263c' })
     }
     const sidebar = new Sidebar({
-      brandName: 'ERP Ligero',
+      brandName: 'Open RootERP',
       brandIcon: '\u2699',
       items: sidebarItems,
       onNavigate: (id) => navigate(id)

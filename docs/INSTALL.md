@@ -1,4 +1,4 @@
-# Instalación — ERP Ligero Offline
+# Instalación — Open RootERP
 
 **Requisitos mínimos:**
 - Node.js 18+ (descargar de https://nodejs.org/)
@@ -11,7 +11,7 @@
 
 ```bash
 # 1. Ir a la carpeta del proyecto
-cd erp-ligero-offline
+cd open-rooterp
 
 # 2. Ejecutar instalación
 chmod +x setup.sh
@@ -22,7 +22,7 @@ chmod +x setup.sh
 
 ```batch
 :: 1. Ir a la carpeta del proyecto
-cd erp-ligero-offline
+cd open-rooterp
 
 :: 2. Ejecutar instalación
 setup.bat

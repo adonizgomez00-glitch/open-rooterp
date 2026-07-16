@@ -62,7 +62,7 @@ async function verifyTableAfterAction(action, toastText) {
 }
 
 async function runAll() {
-  console.log('\n=== ERP Ligero Offline — E2E Tests ===\n')
+  console.log('\n=== Open RootERP — E2E Tests ===\n')
 
   console.log('[setup] Starting server...')
   await startServer()

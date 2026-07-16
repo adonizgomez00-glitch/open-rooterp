@@ -1,4 +1,4 @@
-# Session — ERP Ligero Offline v1.0.0
+# Session — Open RootERP v1.0.0
 
 ## Fecha
 Julio 16, 2026 — Primer lanzamiento público

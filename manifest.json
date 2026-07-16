@@ -1,7 +1,7 @@
 {
-  "name": "ERP Ligero Offline",
-  "short_name": "ERP Ligero",
-  "description": "ERP ligero 100% offline para pequeños negocios",
+  "name": "Open RootERP",
+  "short_name": "Open RootERP",
+  "description": "Open RootERP — Sistema ERP 100% offline, open source, libre y gratuito",
   "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",

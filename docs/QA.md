@@ -1,4 +1,4 @@
-# Plan de Testing QA — ERP Ligero Offline
+# Plan de Testing QA — Open RootERP
 
 **Versión:** 1.0  
 **Enfoque:** Testing Adversarial / Exploratorio (A-QA-Breaker)  

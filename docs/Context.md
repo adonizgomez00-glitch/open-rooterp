@@ -1,4 +1,4 @@
-# ERP Ligero Offline — Contexto del Proyecto
+# Open RootERP — Contexto del Proyecto
 
 ## Stack
 - **Lenguaje**: JavaScript ES2022 (ES Modules)

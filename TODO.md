@@ -1,4 +1,4 @@
-# TODO — ERP Ligero Offline
+# TODO — Open RootERP
 
 **Versión:** 1.0.0  
 **Estado:** Primer lanzamiento público. 45 suites unit/integration, 76 escenarios E2E adversariales

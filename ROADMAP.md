@@ -1,4 +1,4 @@
-# ROADMAP — ERP Ligero Offline
+# ROADMAP — Open RootERP
 
 **Versión:** 1.0.0  
 **Estado:** Primer lanzamiento público — todas las fases completadas

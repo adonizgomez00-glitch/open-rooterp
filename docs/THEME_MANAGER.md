@@ -18,7 +18,7 @@
 
 ## Almacenamiento
 
-La preferencia se guarda en `localStorage` bajo la clave `erp-ligero-theme`.
+La preferencia se guarda en `localStorage` bajo la clave `open-rooterp-theme`.
 
 ## Aplicación
 

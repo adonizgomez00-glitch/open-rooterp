@@ -1,4 +1,4 @@
-# QA Testing Plan — ERP Ligero Offline
+# QA Testing Plan — Open RootERP
 
 **Version:** 1.0  
 **Approach:** Adversarial / Exploratory Testing (A-QA-Breaker)  

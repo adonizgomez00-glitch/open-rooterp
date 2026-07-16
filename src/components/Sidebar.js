@@ -1,5 +1,5 @@
 export class Sidebar {
-  constructor({ items = [], onNavigate = null, brandName = 'ERP Ligero', brandIcon = '\u2699' } = {}) {
+  constructor({ items = [], onNavigate = null, brandName = 'Open RootERP', brandIcon = '\u2699' } = {}) {
     this._items = items
     this._onNavigate = onNavigate
     this._brandName = brandName

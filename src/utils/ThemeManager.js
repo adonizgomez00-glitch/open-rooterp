@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'erp-ligero-theme'
+const STORAGE_KEY = 'open-rooterp-theme'
 
 export class ThemeManager {
   static _instance = null

@@ -1,4 +1,4 @@
-# ARCHITECTURE — ERP Ligero Offline
+# ARCHITECTURE — Open RootERP
 
 **Versión:** 1.0.0  
 **Estado:** Primer lanzamiento público — 14 módulos funcionales, QA completo
@@ -63,7 +63,7 @@ Usuario interactúa
 ## Estructura de Directorios
 
 ```
-erp-ligero-offline/
+open-rooterp/
 │
 ├── index.html                 # Entry point SPA
 ├── manifest.json              # PWA manifest

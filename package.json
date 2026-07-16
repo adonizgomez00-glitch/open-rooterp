@@ -1,8 +1,10 @@
 {
-  "name": "erp-ligero-offline",
+  "name": "open-rooterp",
   "version": "1.0.0",
   "type": "module",
-  "description": "ERP Ligero Offline — Sistema ERP 100% offline sin frameworks",
+  "description": "Open RootERP — Sistema ERP 100% offline, open source, libre y gratuito",
+  "license": "GPL-2.0-or-later",
+  "author": "Adónis Adonai Gómez Martínez <adonizgomez00@gmail.com>",
   "scripts": {
     "test": "node tests/run-all.js",
     "test:e2e": "node tests/e2e/run-e2e.js",

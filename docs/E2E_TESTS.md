@@ -1,4 +1,4 @@
-# Tests E2E — Documentación por Archivo
+# Tests E2E — Open RootERP
 
 **Runner:** `npm run test:e2e` (Playwright + Chromium headless, puerto 3099)
 **Helpers:** `tests/e2e/helpers.js`

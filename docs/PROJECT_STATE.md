@@ -1,4 +1,4 @@
-# ERP Ligero Offline — Estado del Proyecto
+# Open RootERP — Estado del Proyecto
 
 ## Estado general
 

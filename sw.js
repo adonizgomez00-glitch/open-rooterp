@@ -1,5 +1,24 @@
-const CACHE_NAME = 'erp-ligero-v7'
-const STATIC_CACHE = 'erp-ligero-static-v7'
+/*
+ * Open RootERP — ERP 100% offline, open source, libre y gratuito
+ * Copyright (C) 2024 Adónis Adonai Gómez Martínez <adonizgomez00@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+const CACHE_NAME = 'open-rooterp-v1'
+const STATIC_CACHE = 'open-rooterp-static-v1'
 
 const PRECACHE_URLS = [
   '/',
