@@ -353,7 +353,7 @@ Cada array sigue la misma estructura que genera el módulo **Exportar**. El impo
 - ~~Accesibilidad WCAG 2.1 AA (ARIA + Teclado + Contraste + Etiquetas) (Fase 6.2)~~ ✅
 - ~~Dividir vistas grandes: AccountingView, ReportView, PurchaseFormView~~ ✅
 - ~~E2E Testing (38 tests)~~ ✅
-- Release v1.4.0 🎉
+- Release v1.0.0 🎉
 
 ## E2E Tests
 

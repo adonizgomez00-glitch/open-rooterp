@@ -1,9 +1,8 @@
-# Resumen de Continuidad — v1.4.0
+# Resumen de Continuidad — v1.0.0
 
-## Estado actual (Jul 15 2026)
+## Estado actual (Jul 16 2026)
 
-**Release candidate v1.4.0** — 38/38 E2E tests + 410+ unit/integration tests, 0 fallos.
-Todos los módulos planificados implementados, documentación actualizada, listo para release.
+**v1.0.0 — Primer lanzamiento público** — 76 escenarios E2E adversariales + 410+ unit/integration tests, 0 fallos. Todos los módulos planificados implementados, documentación completa.
 
 ## Qué ya está implementado
 
@@ -160,7 +159,7 @@ Todos los módulos planificados implementados, documentación actualizada, listo
 - ~~Accesibilidad WCAG 2.1 AA (Fase 6.2)~~ ✅
 - ~~E2E Testing (Fase 6.3)~~ ✅
 - ~~View splitting + deuda técnica~~ ✅
-- **Release v1.4.0** 🎉
+- **Release v1.0.0** 🎉
 
 
 ---

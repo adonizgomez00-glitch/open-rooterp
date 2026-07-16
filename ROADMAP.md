@@ -110,7 +110,7 @@ ERP ligero, 100% offline, pensado para pequeños negocios que necesitan gestiona
 | v1.2.1 | ✅ Completado | Dashboard Gráficos (Fase 4.3) |
 | v1.3.0 | ✅ Completado | Fase 5 completa (5.1 unitarios ✅, 5.2 integración ✅, 5.3 seguridad ✅, 5.4 performance ✅). Fase 6 pendiente |
 | v1.3.1 | ✅ Completado | Fase 6.1 Temas (claro/oscuro) + Fase 6.2 Accesibilidad (ARIA + Teclado + Contraste + Etiquetas) |
-| v1.4.0 | ✅ Release Candidate | Fase 6.3 E2E Testing (38 tests), deuda técnica (view splitting), mitigación de riesgos |
+| v1.0.0 | ✅ Primer lanzamiento | 14 módulos, PWA, QA 5 fases, 76 E2E adversariales |
 
 ---
 
