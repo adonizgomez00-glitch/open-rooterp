@@ -90,19 +90,25 @@ Al generar o modificar código, se aplican las skills en el siguiente orden estr
 2. **A-project-architecture** — MVC estricto, capas separadas, inyección de dependencias
 3. **A-secure-coding** — Sin innerHTML dinámico, sin eval, sin estilos inline, sanitizar entradas
 4. **A-testing** — Código testeable, AAA, FIRST, casos borde, mocks
+5. **D-git-workflow** — Conventional Commits, Trunk-Based, PR gates, SemVer
 
 ### Nivel B — Obligatorio cuando aplica
-5. **B-authentication-security** — PBKDF2, RBAC, mínimo privilegio
-6. **B-html-css** — HTML semántico, CSS con clases, sin estilos inline
-7. **B-javascript-clean** — ES Modules, const/let, async/await, sin var
-8. **B-ui-components** — Componentes reutilizables, separación de concerns
+6. **B-authentication-security** — PBKDF2, RBAC, mínimo privilegio
+7. **B-html-css** — HTML semántico, CSS con clases, sin estilos inline
+8. **B-javascript-clean** — ES Modules, const/let, async/await, sin var
+9. **B-ui-components** — Componentes reutilizables, separación de concerns
+10. **C-database-design-offline** — Normalización, índices compuestos, migraciones, seed idempotente
+11. **C-dexie-patterns** — Repository pattern, queries optimizadas, transacciones atómicas
 
-### Nivel C — Debugging (obligatorio siempre al finalizar)
-9. **C-debugging** — Flujo obligatorio al terminar cualquier módulo/corrección:
-   1. Encontrar causa → 2. Explicar problema → 3. Proponer solución → 4. Implementar → 5. Verificar (tests 0 fallos)
+### Nivel C — Verificación / Debugging (obligatorio siempre al finalizar)
+12. **C-debugging** — Flujo obligatorio al terminar cualquier módulo/corrección:
+    1. Encontrar causa → 2. Explicar problema → 3. Proponer solución → 4. Implementar → 5. Verificar (tests 0 fallos)
+13. **C-documentation** — Documentar solo cuando todo el código anterior está verificado y funcionando. Sin comentarios en código, solo documentación externa si es necesaria.
+14. **C-qa-breaker** — QA adversarial obligatorio (Fase 7): 8 categorías ATK-*, gate de release
 
-### Nivel D — Documentación (al final, cuando todo está correcto)
-10. **C-documentation** — Documentar solo cuando todo el código anterior está verificado y funcionando. Sin comentarios en código, solo documentación externa si es necesaria.
+### Nivel D — Soporte / Mejora Continua
+15. **D-prompt-engineering** — CoT, few-shot, structured output para prompts
+16. **D-Agente-IA** — Arquitectura agente: Planner, Context Manager, Skill Registry, Tool Executor, Mode Controller
 
 ## Convenciones clave
 - Una clase por archivo, máx. 300 líneas, funciones máx. 40 líneas
