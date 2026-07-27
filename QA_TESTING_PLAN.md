@@ -1,573 +1,574 @@
-# QA Testing Plan — Open RootERP
+# Plan de Testing QA — Open RootERP
 
-**Version:** 1.0  
-**Approach:** Adversarial / Exploratory Testing (A-QA-Breaker)  
-**Objective:** Make the application fail. Find bugs, not confirm features.
-
----
-
-## Application Overview
-
-**Stack:** Vanilla JS ES Modules, IndexedDB (Dexie.js), Service Worker, Chart.js  
-**Architecture:** MVC + Service Layer + Repository Pattern  
-**Modules:** Auth, Products, Customers, Suppliers, Sales, Purchases, Inventory, Accounting, Reports, Settings, Import/Export, Users  
-**Security:** XSS sanitization, input validation, RBAC, offline-first
+**Versión:** 1.0  
+**Enfoque:** Testing Adversarial / Exploratorio (A-QA-Breaker)  
+**Objetivo:** Hacer fallar la aplicación. Encontrar bugs, no confirmar features.
 
 ---
 
-## Testing Philosophy
+## Resumen de la Aplicación
 
-> "Every screen is assumed to contain hidden bugs until proven otherwise."
-> — A-QA-Breaker Skill
-
-**Personas to simulate:**
-1. **Careless User** — Random clicks, empty fields, copy/paste, frequent refresh
-2. **Angry User** — Spam clicks, double-clicks, navigate mid-process, cancel dialogs
-3. **Curious User** — DevTools, URL manipulation, localStorage/IndexedDB editing, hidden routes
-4. **Malicious User** — XSS, SQLi strings, HTML injection, huge payloads, unicode, control chars
-5. **Slow Connection User** — Offline, timeouts, slow loads, refresh mid-request
-6. **Mobile User** — Small viewport, landscape/portrait, keyboard, zoom 200%, a11y fonts
+- **Stack:** Vanilla JS ES Modules, IndexedDB (Dexie.js), Service Worker, Chart.js
+- **Arquitectura:** MVC + Service Layer + Repository Pattern
+- **Módulos:** Auth, Productos, Clientes, Proveedores, Ventas, Compras, Inventario, Contabilidad, Reportes, Configuración, Import/Export, Usuarios
+- **Seguridad:** Sanitización XSS, validación de entrada, RBAC, offline-first
 
 ---
 
-## Test Areas & Adversarial Scenarios
+## Filosofía de Testing
 
-### 1. AUTHENTICATION & SESSION MANAGEMENT
+> *"Cada pantalla se asume que contiene bugs ocultos hasta que se demuestre lo contrario."*
 
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| A1 | Login with empty username/password | Careless: submit blank | Should show validation error |
-| A2 | Login with 10,000 char username | Malicious: oversized input | Should reject gracefully |
-| A3 | Login with SQL injection: `' OR '1'='1` | Malicious: SQLi string | Should not error, treat as literal |
-| A4 | Login with XSS: `<script>alert(1)</script>` | Malicious: XSS | Should sanitize/escape |
-| A5 | Login with RTL override: `‮admin` | Malicious: unicode bidi | Should not break UI |
-| A6 | Login with emoji password: `🔥💣💀` | Malicious: unicode | Should handle gracefully |
-| A7 | Double-click "Ingresar" rapidly | Angry: spam submit | Should not create duplicate sessions |
-| A8 | Click Back after login → refresh | Careless: browser back | Should maintain session or redirect cleanly |
-| A9 | Open login in 2 tabs, login in one, refresh other | Curious: multi-tab | Should sync or handle gracefully |
-| A10 | Delete session token from localStorage, refresh | Curious: tamper storage | Should redirect to login |
-| A11 | Modify session token in localStorage to another user's | Malicious: privilege escalation | Should invalidate session |
-| A12 | Expire token manually (set expiresAt to past) | Malicious: expired token | Should force re-login |
-| A13 | Logout while sale creation in progress | Angry: interrupt process | Should cancel pending operations |
-| A14 | Setup wizard: submit with all fields empty | Careless: skip required | Should show validation errors |
-| A15 | Setup wizard: username with spaces only | Careless: whitespace | Should trim and reject |
-| A16 | Setup wizard: password ≠ confirm | Careless: mismatch | Should show error |
-| A17 | Setup wizard: password < 8 chars | Careless: weak password | Should enforce minlength |
-| A18 | Setup wizard: XSS in business name | Malicious: persistent XSS | Should sanitize on display |
-| A19 | Direct navigation to `/users` without login | Curious: protected route | Should redirect to login |
-| A20 | Concurrent login: same user, 2 browsers | Malicious: session fixation | Should handle per policy |
+### 6 Personalidades a simular
+
+| Persona | Comportamiento |
+|---------|---------------|
+| **Usuario Descuidado** | Clicks aleatorios, campos vacíos, copy/paste, refresh frecuente |
+| **Usuario Enojado** | Spam clicks, doble-click, navega durante carga, cancela diálogos |
+| **Usuario Curioso** | DevTools, manipula URLs, edita localStorage/IndexedDB, rutas ocultas |
+| **Usuario Malicioso** | XSS, SQLi, HTML injection, payloads grandes, unicode, control chars |
+| **Usuario Conexión Lenta** | Offline, timeouts, cargas lentas, refresh mid-request |
+| **Usuario Móvil** | Viewport pequeño, landscape/portrait, teclado, zoom 200%, fuentes a11y |
 
 ---
 
-### 2. PRODUCTS MODULE
+## Áreas de Test y Escenarios Adversarios
 
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| P1 | Create product: empty name | Careless: required field | Validation error |
-| P2 | Create product: name = 5000 chars | Malicious: huge input | Truncate or reject |
-| P3 | Create product: name = `<img src=x onerror=alert(1)>` | Malicious: XSS | Sanitized on render |
-| P4 | Create product: code = duplicate | Careless: unique constraint | Should reject with clear message |
-| P5 | Create product: negative purchasePrice | Malicious: negative numbers | Should reject (min: 0) |
-| P6 | Create product: salePrice = "abc" | Malicious: type confusion | Should reject non-numeric |
-| P5 | Create product: stock = -100 | Malicious: negative stock | Should reject |
-| P6 | Create product: stock = 999999999999 | Malicious: overflow | Should handle large numbers |
-| P7 | Create product: category with emoji `🎮💻` | Malicious: unicode | Should store/display correctly |
-| P8 | Create product: category with RTL `‮Electrónicos` | Malicious: bidi override | Should not break layout |
-| P9 | Rapid click "+ Nuevo Producto" 20 times | Angry: spam modals | Should not open duplicate modals |
-| P10 | Open edit modal, change URL hash, close modal | Curious: navigation mid-flow | Should clean up state |
-| P11 | Edit product: change code to existing product's code | Careless: duplicate on edit | Should validate uniqueness |
-| P12 | Delete product with existing sales history | Business rule: referential integrity | Should block or cascade properly |
-| P13 | Search input: paste 10MB text | Malicious: DoS via search | Should debounce and limit |
-| P14 | Search: SQL injection `' UNION SELECT * FROM users--` | Malicious: SQLi | Should treat as literal string |
-| P15 | Sort table by clicking header rapidly | Angry: spam sort | Should not flicker or error |
-| P16 | Table with 10,000 products: scroll, sort, search | Performance: huge dataset | Should virtualize or paginate |
-| P17 | Product form: paste HTML in description | Malicious: HTML injection | Should strip tags |
-| P18 | Product form: description with `\n\r\t` control chars | Malicious: control chars | Should sanitize |
-| P19 | Product code: leading/trailing spaces | Careless: whitespace | Should trim |
-| P20 | Product code: only spaces | Careless: empty-like | Should reject |
+### 1. AUTENTICACIÓN Y SESIÓN
 
----
-
-### 3. CUSTOMERS MODULE
-
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| C1 | Create customer: empty name | Careless | Validation error |
-| C2 | Create customer: duplicate documentId | Careless/Business rule | Unique constraint error |
-| C3 | DocumentId: SQL injection `' OR 1=1--` | Malicious | Literal string |
-| C4 | DocumentId: XSS `<svg onload=alert(1)>` | Malicious | Sanitized |
-| C5 | Email: invalid format `not-an-email` | Careless | Format validation |
-| C6 | Email: `a@b` (minimal valid) | Edge case | Should accept |
-| C7 | Email: 500 char local part | Malicious | Length limit |
-| C8 | Phone: letters `abcdefghij` | Careless | Should reject or sanitize |
-| C9 | Phone: `+502 1234-5678 ext. 123` | Real-world format | Should accept |
-| C10 | Address: 10,000 chars with newlines | Malicious | Should handle/truncate |
-| C11 | Address: RTF/Markdown injection | Malicious | Should strip |
-| C12 | Rapid create 50 customers via Enter spam | Angry | Should not duplicate |
-| C13 | Edit customer: change documentId to existing | Business rule | Should reject |
-| C14 | Delete customer with sales history | Business rule | Should block or cascade |
-| C15 | Search: paste binary data | Malicious | Should not crash |
-| C16 | Table: click "Editar" and "Eliminar" simultaneously | Angry: race condition | Should handle one action |
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| A1 | Login con usuario/contraseña vacíos | Descuidado: submit en blanco | Error de validación |
+| A2 | Login con 10,000 caracteres en username | Malicioso: input sobredimensionado | Rechazar graciosamente |
+| A3 | Login con SQL injection: `' OR '1'='1` | Malicioso: string SQLi | No debe dar error, tratar como literal |
+| A4 | Login con XSS: `<script>alert(1)</script>` | Malicioso: XSS | Sanitizar/escapar |
+| A5 | Login con RTL override: `‮admin` | Malicioso: unicode bidi | No romper UI |
+| A6 | Login con emoji en password: `🔥💣💀` | Malicioso: unicode | Manejar graciosamente |
+| A7 | Doble-click rápido en "Ingresar" | Enojado: spam submit | No crear sesiones duplicadas |
+| A8 | Click Back después de login → refresh | Descuidado: navegación browser | Mantener sesión o redirigir limpio |
+| A9 | Abrir login en 2 pestañas, loguear en una, refrescar otra | Curioso: multi-pestaña | Sincronizar o manejar graciosamente |
+| A10 | Borrar token de sesión de localStorage, refrescar | Curioso: manipular storage | Redirigir a login |
+| A11 | Modificar token en localStorage al de otro usuario | Malicioso: escalada de privilegios | Invalidar sesión |
+| A12 | Expirar token manualmente (poner expiresAt en pasado) | Malicioso: token expirado | Forzar re-login |
+| A13 | Cerrar sesión mientras se crea una venta | Enojado: interrumpir proceso | Cancelar operaciones pendientes |
+| A14 | Wizard setup: enviar con todos los campos vacíos | Descuidado: saltar requeridos | Mostrar errores de validación |
+| A15 | Wizard setup: username con solo espacios | Descuidado: whitespace | Trim y rechazar |
+| A16 | Wizard setup: password diferente a confirmación | Descuidado: no coinciden | Mostrar error |
+| A17 | Wizard setup: password menor a 8 caracteres | Descuidado: password débil | Exigir minlength |
+| A18 | Wizard setup: XSS en nombre del negocio | Malicioso: XSS persistente | Sanitizar al mostrar |
+| A19 | Navegación directa a `/users` sin login | Curioso: ruta protegida | Redirigir a login |
+| A20 | Login concurrente: mismo usuario, 2 navegadores | Malicioso: session fixation | Manejar según política |
 
 ---
 
-### 4. SUPPLIERS MODULE
+### 2. MÓDULO PRODUCTOS
 
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| S1 | Duplicate documentId (NIT/RUC) | Business rule | Unique constraint |
-| S2 | NIT format validation: `12345678-9` vs `123456789` | Regional format | Should accept valid formats |
-| S3 | Create supplier during purchase creation | Integration | Should work |
-| S4 | Supplier with special chars in name: `José & María S.A.` | Real-world | Should handle |
-| S5 | Delete supplier with purchase history | Business rule | Block or cascade |
-
----
-
-### 5. SALES MODULE (Critical - Money Flow)
-
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| SA1 | Create sale: no products added | Careless: empty cart | Should block submit |
-| SA2 | Create sale: quantity = 0 | Malicious: edge case | Should reject (min: 1) |
-| SA3 | Create sale: quantity = -5 | Malicious: negative | Should reject |
-| SA4 | Create sale: quantity = 999999 (exceeds stock) | Business rule | Should check stock |
-| SA5 | Create sale: quantity = 1.5 (decimal) | Malicious: type confusion | Should reject or floor |
-| SA6 | Create sale: unitPrice = -100 | Malicious: negative price | Should reject |
-| SA7 | Create sale: unitPrice = "gratis" | Malicious: string in number | Should reject |
-| SA8 | Create sale: add same product twice | Careless: duplicate line | Should merge quantities |
-| SA9 | Create sale: modify cart quantity to 0 | Careless: remove via qty | Should remove line |
-| SA10 | Create sale: modify cart quantity > stock | Business rule | Should validate on change |
-| SA11 | Create sale: customer select → change to "ocasional" | Workflow change | Should handle null customerId |
-| SA12 | Create sale: notes with XSS payload | Malicious: stored XSS | Should sanitize on render |
-| SA13 | Create sale: notes with 50KB text | Malicious: huge payload | Should limit length |
-| SA14 | Double-click "Agregar" rapidly | Angry: race condition | Should not duplicate lines |
-| SA15 | Double-click "Guardar Venta" rapidly | Angry: double submit | Should disable button on first click |
-| SA16 | Navigate away during sale creation | Careless: abandon form | Should warn or auto-save draft |
-| SA17 | Refresh page during sale creation | Careless: refresh | Should not create partial sale |
-| SA18 | Offline: create sale, go online, sync | Offline-first | Should work |
-| SA19 | Sale with customer deleted after sale created | Data integrity | Should show customer name from sale record |
-| SA20 | Cancel sale: stock restoration correctness | Business critical | Stock must return exactly |
-| SA21 | Cancel sale: accounting entry reversal | Integration | Should create reversal entry |
-| SA22 | Cancel already cancelled sale | Idempotency | Should show error |
-| SA23 | Delete sale: stock restoration | Business critical | Stock must return |
-| SA24 | Delete sale: accounting entry deletion | Integration | Should delete entry |
-| SA25 | View detail of deleted sale | Edge case | Should handle gracefully |
-| SA26 | Sale with 100 line items | Performance | Should handle |
-| SA27 | Sale: product deleted after added to cart | Data integrity | Should handle missing product |
-| SA28 | Concurrent sales of same product (2 tabs) | Race condition | Stock check must be atomic |
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| P1 | Crear producto: nombre vacío | Descuidado: campo requerido | Error de validación |
+| P2 | Crear producto: nombre de 5000 caracteres | Malicioso: input enorme | Truncar o rechazar |
+| P3 | Crear producto: nombre = `<img src=x onerror=alert(1)>` | Malicioso: XSS | Sanitizado al renderizar |
+| P4 | Crear producto: código duplicado | Descuidado: constraint único | Rechazar con mensaje claro |
+| P5 | Crear producto: purchasePrice negativo | Malicioso: números negativos | Rechazar (min: 0) |
+| P6 | Crear producto: salePrice = "abc" | Malicioso: confusión de tipo | Rechazar no numérico |
+| P7 | Crear producto: stock = -100 | Malicioso: stock negativo | Rechazar |
+| P8 | Crear producto: stock = 999999999999 | Malicioso: overflow | Manejar números grandes |
+| P9 | Crear producto: categoría con emoji `🎮💻` | Malicioso: unicode | Guardar/mostrar correctamente |
+| P10 | Crear producto: categoría con RTL `‮Electrónicos` | Malicioso: bidi override | No romper layout |
+| P11 | Click rápido "+ Nuevo Producto" 20 veces | Enojado: spam modales | No abrir modales duplicados |
+| P12 | Abrir modal editar, cambiar URL hash, cerrar modal | Curioso: navegación mid-flow | Limpiar estado |
+| P13 | Editar producto: cambiar código a uno existente | Descuidado: duplicado al editar | Validar unicidad |
+| P14 | Eliminar producto con historial de ventas | Regla negocio: integridad referencial | Bloquear o hacer cascade |
+| P15 | Input de búsqueda: pegar 10MB de texto | Malicioso: DoS via búsqueda | Debounce y límite |
+| P16 | Búsqueda: SQL injection `' UNION SELECT * FROM users--` | Malicioso: SQLi | Tratar como string literal |
+| P17 | Formulario: pegar HTML en descripción | Malicioso: HTML injection | Eliminar etiquetas |
+| P18 | Descripción con caracteres de control `\n\r\t` | Malicioso: control chars | Sanitizar |
+| P19 | Código de producto: espacios al inicio/final | Descuidado: whitespace | Hacer trim |
+| P20 | Código de producto: solo espacios | Descuidado: parece vacío | Rechazar |
 
 ---
 
-### 6. PURCHASES MODULE
+### 3. MÓDULO CLIENTES
 
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| PU1 | Create purchase: empty items | Careless | Block submit |
-| PU2 | Quantity = 0 or negative | Malicious | Reject |
-| PU3 | Unit price negative | Malicious | Reject |
-| PU4 | Supplier deleted after purchase created | Data integrity | Show supplier name from purchase record |
-| PU5 | Cancel purchase: stock deduction correctness | Business critical | Stock must decrease exactly |
-| PU6 | Cancel purchase: accounting reversal | Integration | Should create reversal |
-| PU7 | Delete purchase: stock deduction | Business critical | Stock must decrease |
-| PU8 | Rapid add/remove items | Angry | No duplicates |
-| PU9 | Purchase with 500 items | Performance | Should handle |
-
----
-
-### 7. INVENTORY / STOCK ADJUSTMENTS
-
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| I1 | Adjustment: quantity = 0 | Edge case | Should reject or allow? |
-| I2 | Adjustment: negative quantity for "entry" | Malicious: logic bypass | Should validate type/qty match |
-| I3 | Adjustment: huge quantity (overflow) | Malicious | Handle large numbers |
-| I4 | Adjustment: product deleted after opening modal | Race condition | Should handle gracefully |
-| I5 | Movement history: 10,000 rows | Performance | Pagination/virtualization |
-| I6 | Movement type: XSS in notes | Malicious | Sanitize |
-| I7 | Stock goes negative via adjustment exit | Business rule | Should allow with warning or block |
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| C1 | Crear cliente: nombre vacío | Descuidado | Error de validación |
+| C2 | Crear cliente: documentId duplicado | Descuidado / Regla negocio | Error de constraint único |
+| C3 | documentId: SQL injection `' OR 1=1--` | Malicioso | Tratar como literal |
+| C4 | documentId: XSS `<svg onload=alert(1)>` | Malicioso | Sanitizado |
+| C5 | Email: formato inválido `not-an-email` | Descuidado | Validación de formato |
+| C6 | Email: `a@b` (mínimo válido) | Edge case | Debe aceptar |
+| C7 | Email: 500 caracteres parte local | Malicioso | Límite de longitud |
+| C8 | Teléfono: letras `abcdefghij` | Descuidado | Rechazar o sanitizar |
+| C9 | Teléfono: `+502 1234-5678 ext. 123` | Formato real | Debe aceptar |
+| C10 | Dirección: 10,000 caracteres con saltos de línea | Malicioso | Manejar/truncar |
+| C11 | Dirección: inyección RTF/Markdown | Malicioso | Eliminar |
+| C12 | Crear rápido 50 clientes spammeando Enter | Enojado | No duplicar |
+| C13 | Editar cliente: cambiar documentId a uno existente | Regla negocio | Rechazar |
+| C14 | Eliminar cliente con historial de ventas | Regla negocio | Bloquear o hacer cascade |
+| C15 | Búsqueda: pegar datos binarios | Malicioso | No debe crashear |
+| C16 | Tabla: click simultáneo "Editar" y "Eliminar" | Enojado: race condition | Manejar una sola acción |
 
 ---
 
-### 8. ACCOUNTING MODULE
+### 4. MÓDULO PROVEEDORES
 
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| AC1 | Chart of Accounts: duplicate code | Business rule | Unique constraint |
-| AC2 | Chart of Accounts: circular reference (parent = child) | Malicious: infinite loop | Should detect/prevent |
-| AC3 | Journal entry: unbalanced debit/credit | Business rule | Must balance to 0 |
-| AC4 | Journal entry: negative amounts | Malicious | Should reject |
-| AC5 | Balance Sheet: date range future dates | Edge case | Should handle |
-| AC6 | Balance Sheet: start date > end date | Careless | Should swap or error |
-| AC7 | Income Statement: huge date range (10 years) | Performance | Should handle |
-| AC8 | Account type: invalid enum value | Malicious | Should validate enum |
-| AC9 | Delete account with entries | Referential integrity | Should block |
-| AC10 | Account code: leading zeros `0001` vs `1` | Data integrity | Should preserve format |
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| S1 | NIT/RUC duplicado | Regla negocio | Constraint único |
+| S2 | Validación formato NIT: `12345678-9` vs `123456789` | Formato regional | Aceptar formatos válidos |
+| S3 | Crear proveedor durante creación de compra | Integración | Debe funcionar |
+| S4 | Proveedor con caracteres especiales: `José & María S.A.` | Mundo real | Debe manejar |
+| S5 | Eliminar proveedor con historial de compras | Regla negocio | Bloquear o hacer cascade |
 
 ---
 
-### 9. REPORTS MODULE
+### 5. MÓDULO VENTAS (Crítico - Flujo de Dinero)
 
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| R1 | Sales report: start date > end date | Careless | Swap or error |
-| R2 | Sales report: date range 50 years | Performance | Handle large ranges |
-| R3 | Stock report: filter by category with XSS | Malicious | Sanitize |
-| R4 | Report with 0 results | Empty state | Show empty message |
-| R5 | Report: rapid tab switching | Angry | No duplicate requests |
-| R6 | Export report during generation | Race condition | Handle cancel |
-
----
-
-### 10. SETTINGS MODULE
-
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| SE1 | Tax rate: negative value | Malicious | Reject (min: 0) |
-| SE2 | Tax rate: > 100% | Malicious | Reject (max: 100) |
-| SE3 | Tax rate: "12%" (with %) | Careless | Parse or reject |
-| SE4 | Currency symbol: `<script>alert(1)</script>` | Malicious: stored XSS | Sanitize on render |
-| SE5 | Currency symbol: 100 char emoji | Malicious | Length limit |
-| SE6 | Business name: RTL override | Malicious | No layout break |
-| SE7 | Email: invalid format | Careless | Validate |
-| SE8 | Phone: letters | Careless | Sanitize/validate |
-| SE9 | Rapid save clicks | Angry | Debounce |
-| SE10 | Change tax rate → existing sales recalc? | Business rule | Should NOT recalc historical |
-
----
-
-### 11. IMPORT / EXPORT MODULE (High Risk - Data Integrity)
-
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| IM1 | Import CSV: 100MB file | Malicious: DoS | Size limit, streaming parse |
-| IM2 | Import CSV: malformed (unclosed quotes) | Malicious: parser crash | Graceful error |
-| IM3 | Import CSV: 50,000 rows | Performance | Batch, progress, not block UI |
-| IM4 | Import CSV: duplicate codes in file | Data quality | Skip or merge |
-| IM5 | Import CSV: XSS in name field `<img src=x onerror=alert(1)>` | Malicious: stored XSS | Sanitize on import |
-| IM6 | Import CSV: SQL injection in fields | Malicious | Treat as literal |
-| IM7 | Import CSV: control chars `\x00\x1F` | Malicious | Strip control chars |
-| IM8 | Import CSV: different encoding (UTF-16, Latin1) | Real-world | Detect/handle encoding |
-| IM9 | Import JSON: malformed JSON | Malicious: parse error | Catch and show row error |
-| IM10 | Import JSON: circular reference | Malicious: stack overflow | Detect circular |
-| IM11 | Import JSON: prototype pollution `__proto__` | Critical: prototype pollution | Sanitize keys |
-| IM12 | Import: entity mismatch (products file → customers) | Careless: wrong selection | Auto-detect or validate |
-| IM13 | Import: cancel mid-process | Angry: interrupt | Clean rollback |
-| IM14 | Import: network fails (simulated) | Offline | Resume or clear state |
-| IM15 | Export: 50,000 rows CSV | Performance | Stream, not memory |
-| IM16 | Export: special chars in data (commas, quotes, newlines) | Data integrity | Proper CSV escaping |
-| IM17 | Export: XSS in exported data (formula injection `=2+5`) | Security: CSV injection | Prefix with `'` |
-| IM18 | Import full export: circular refs between entities | Data integrity | Handle dependencies |
-| IM19 | Import: duplicate documentId across entities | Business rule | Unique per entity |
-| IM20 | Import: referential integrity (sale references deleted customer) | Data integrity | Validate FKs |
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| SA1 | Crear venta: sin productos agregados | Descuidado: carrito vacío | Bloquear envío |
+| SA2 | Crear venta: cantidad = 0 | Malicioso: edge case | Rechazar (mín: 1) |
+| SA3 | Crear venta: cantidad = -5 | Malicioso: negativo | Rechazar |
+| SA4 | Crear venta: cantidad = 999999 (excede stock) | Regla negocio | Verificar stock |
+| SA5 | Crear venta: cantidad = 1.5 (decimal) | Malicioso: confusión tipo | Rechazar o truncar |
+| SA6 | Crear venta: unitPrice = -100 | Malicioso: precio negativo | Rechazar |
+| SA7 | Crear venta: unitPrice = "gratis" | Malicioso: string en número | Rechazar |
+| SA8 | Crear venta: agregar mismo producto dos veces | Descuidado: línea duplicada | Fusionar cantidades |
+| SA9 | Crear venta: modificar cantidad del carrito a 0 | Descuidado: eliminar via qty | Eliminar línea |
+| SA10 | Crear venta: modificar cantidad mayor al stock | Regla negocio | Validar al cambiar |
+| SA11 | Crear venta: cambiar selección de cliente a "ocasional" | Cambio de flujo | Manejar customerId null |
+| SA12 | Notas con payload XSS | Malicioso: XSS almacenado | Sanitizar al renderizar |
+| SA13 | Notas con 50KB de texto | Malicioso: payload enorme | Limitar longitud |
+| SA14 | Doble-click rápido en "Agregar" | Enojado: race condition | No duplicar líneas |
+| SA15 | Doble-click rápido en "Guardar Venta" | Enojado: doble envío | Deshabilitar botón al primer click |
+| SA16 | Navegar fuera durante creación de venta | Descuidado: abandonar formulario | Advertir o auto-guardar borrador |
+| SA17 | Refrescar página durante creación de venta | Descuidado: refresh | No crear venta parcial |
+| SA18 | Offline: crear venta, volver online, sincronizar | Offline-first | Debe funcionar |
+| SA19 | Cliente eliminado después de crear venta | Integridad de datos | Mostrar nombre desde registro de venta |
+| SA20 | Anular venta: restauración correcta del stock | Crítico de negocio | El stock debe volver exactamente |
+| SA21 | Anular venta: reversión del asiento contable | Integración | Crear asiento de reversión |
+| SA22 | Anular venta que ya está anulada | Idempotencia | Mostrar error |
+| SA23 | Eliminar venta: restauración del stock | Crítico de negocio | El stock debe volver |
+| SA24 | Eliminar venta: eliminación del asiento contable | Integración | Eliminar asiento |
+| SA25 | Ver detalle de venta eliminada | Edge case | Manejar graciosamente |
+| SA26 | Venta con 100 líneas de items | Performance | Debe manejar |
+| SA27 | Venta: producto eliminado después de agregar al carrito | Integridad de datos | Manejar producto faltante |
+| SA28 | Ventas concurrentes del mismo producto (2 pestañas) | Race condition | El check de stock debe ser atómico |
 
 ---
 
-### 12. USERS & RBAC MODULE
+### 6. MÓDULO COMPRAS
 
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| U1 | Create user: username duplicate | Business rule | Unique constraint |
-| U2 | Create user: password < 8 chars | Security policy | Enforce minlength |
-| U3 | Create user: password = username | Weak password | Warn or reject |
-| U4 | Create user: role = invalid ID | Malicious: tamper select | Validate enum |
-| U5 | Edit self: demote own admin role | Privilege escalation | Block or warn |
-| U6 | Delete self | Edge case | Block |
-| U7 | Create user with XSS in username | Malicious: stored XSS | Sanitize on render |
-| U8 | Rapid create/delete users | Angry: stress | No orphan data |
-| U9 | Permission check: direct URL to admin module | Curious: bypass UI | Server-side (service) check |
-| U10 | Session: modify roleId in localStorage | Malicious: client-side escalation | Server re-validates |
-| U11 | Two tabs: logout in one, continue in other | Multi-tab | Sync or redirect |
-| U12 | Expired session: try action | Security | Redirect to login |
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| PU1 | Crear compra: sin items | Descuidado | Bloquear envío |
+| PU2 | Cantidad = 0 o negativa | Malicioso | Rechazar |
+| PU3 | Precio unitario negativo | Malicioso | Rechazar |
+| PU4 | Proveedor eliminado después de crear compra | Integridad de datos | Mostrar nombre desde registro de compra |
+| PU5 | Anular compra: deducción correcta del stock | Crítico de negocio | Stock debe disminuir exactamente |
+| PU6 | Anular compra: reversión contable | Integración | Crear reversión |
+| PU7 | Eliminar compra: deducción del stock | Crítico de negocio | Stock debe disminuir |
+| PU8 | Agregar/remover items rápidamente | Enojado | Sin duplicados |
+| PU9 | Compra con 500 items | Performance | Debe manejar |
 
 ---
 
-### 13. NAVIGATION & ROUTING
+### 7. INVENTARIO / AJUSTES DE STOCK
 
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| N1 | Direct URL to `/products` without login | Curious: bypass | Redirect to login |
-| N2 | Direct URL to `/users` without admin permission | Curious: RBAC bypass | Redirect or 403 |
-| N3 | Browser Back after form submit | Careless: double submit | Should not re-submit |
-| N4 | Browser Back after logout | Careless: cached page | Should not show data |
-| N5 | Browser Forward after Back | Navigation | Careless | Should work |
-| N6 | Refresh on any module | Careless: state loss | Should restore from IndexedDB |
-| N7 | Open module in new tab (Ctrl+Click) | Multi-tab | Should work independently |
-| N8 | 50 tabs open, navigate rapidly | Stress: memory | No leaks |
-| N9 | Invalid route `/invalid-module` | Curious: 404 | Show friendly error |
-| N10 | Hash change during modal open | Race condition | Close modal cleanly |
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| I1 | Ajuste: cantidad = 0 | Edge case | Rechazar o permitir |
+| I2 | Ajuste: cantidad negativa para tipo "entrada" | Malicioso: bypass de lógica | Validar tipo/cantidad coincidan |
+| I3 | Ajuste: cantidad enorme (overflow) | Malicioso | Manejar números grandes |
+| I4 | Producto eliminado después de abrir modal de ajuste | Race condition | Manejar graciosamente |
+| I5 | Historial de movimientos: 10,000 filas | Performance | Paginación / virtualización |
+| I6 | Tipo de movimiento: XSS en notas | Malicioso | Sanitizar |
+| I7 | Stock negativo mediante ajuste de salida | Regla de negocio | Permitir con advertencia o bloquear |
 
 ---
 
-### 14. MODALS & OVERLAYS
+### 8. CONTABILIDAD
 
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| M1 | Open modal, press ESC | Keyboard: dismiss | Should close |
-| M2 | Open modal, click overlay | Mouse: dismiss | Should close (if closable) |
-| M3 | Open modal, click overlay (non-closable) | Malicious: force close | Should NOT close |
-| M4 | Spam open/close modal 50x | Angry: stress | No memory leak |
-| M5 | Open modal, resize window | Mobile: orientation | Should reposition |
-| M6 | Open modal, rotate device | Mobile | Should adapt |
-| M7 | Open 2 modals simultaneously | Race condition | Should stack or prevent |
-| M8 | Modal focus trap: Tab cycles correctly | Accessibility | Focus stays in modal |
-| M9 | Modal: focus returns to trigger on close | Accessibility | Restore focus |
-| M10 | ConfirmDialog: press Enter = confirm? | Keyboard | Should require explicit |
-| M11 | ConfirmDialog: spam confirm button | Angry: double action | Disable on first click |
-
----
-
-### 15. FORMS & VALIDATION
-
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| F1 | Required field: spaces only `"   "` | Careless: whitespace | Should trim and reject |
-| F2 | Required field: zero-width space `​` | Malicious: invisible char | Should detect |
-| F3 | Number field: `Infinity` | Malicious: JS special | Should reject |
-| F4 | Number field: `NaN` | Malicious | Should reject |
-| F5 | Number field: `1e10` (scientific) | Edge case | Parse or reject |
-| F6 | Number field: paste "abc" | Careless: wrong type | Should reject |
-| F7 | Email field: `test@` | Careless: incomplete | Should reject |
-| F8 | Email field: `test@test@test.com` | Malicious | Should reject |
-| F9 | Select: tamper value via DevTools | Curious: bypass options | Should validate server-side |
-| F10 | Textarea: 100KB paste | Malicious: DoS | Length limit |
-| F11 | Textarea: newlines, tabs, RTL | Real-world | Preserve or sanitize |
-| F12 | Form submit: double-click submit | Angry: double POST | Disable on submit |
-| F13 | Form: enter in textarea = submit? | UX: accidental submit | Should not submit |
-| F14 | Form: autocomplete fills wrong field | Browser behavior | Proper autocomplete attrs |
-| F15 | Form validation: error message XSS | Malicious: error msg injection | Escape error messages |
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| AC1 | Plan de Cuentas: código duplicado | Regla de negocio | Constraint único |
+| AC2 | Referencia circular (padre = hijo) | Malicioso: loop infinito | Detectar/prevenir |
+| AC3 | Asiento contable: débito/crédito desbalanceado | Regla de negocio | Debe sumar cero |
+| AC4 | Asiento contable: montos negativos | Malicioso | Rechazar |
+| AC5 | Balance General: rango de fechas en futuro | Edge case | Debe manejar |
+| AC6 | Balance General: fecha inicio mayor a fecha fin | Descuidado | Intercambiar o mostrar error |
+| AC7 | Estado de Resultados: rango de fechas enorme (10 años) | Performance | Debe manejar |
+| AC8 | Tipo de cuenta: valor enum inválido | Malicioso | Validar enum |
+| AC9 | Eliminar cuenta con asientos | Integridad referencial | Bloquear |
+| AC10 | Código de cuenta: ceros a la izquierda `0001` vs `1` | Integridad de datos | Preservar formato |
 
 ---
 
-### 16. TABLES & DATA GRIDS
+### 9. REPORTES
 
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| T1 | Sort: click header 20x rapidly | Angry: spam | No flicker, stable |
-| T2 | Sort: column with null values | Edge case | Nulls last |
-| T3 | Sort: column with mixed types (str/num) | Data quality | Consistent ordering |
-| T4 | Pagination: page size 1000 | Performance | Virtualize or limit |
-| T5 | Pagination: jump to page 999 | Edge case | Handle gracefully |
-| T6 | Search: type 50 chars/sec | Angry: stress | Debounce works |
-| T7 | Search: special regex chars `.*+?^${}()|[]\` | Malicious: ReDoS | Literal search |
-| T8 | Row click: double-click | Angry: double action | Single action |
-| T9 | Empty table: render performance | Edge case | Fast empty state |
-| T10 | 10,000 rows: scroll, sort, filter | Performance | Virtual scroll |
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| R1 | Reporte de ventas: fecha inicio mayor a fecha fin | Descuidado | Intercambiar o mostrar error |
+| R2 | Reporte de ventas: rango de fechas de 50 años | Performance | Manejar rangos grandes |
+| R3 | Reporte de stock: filtrar por categoría con XSS | Malicioso | Sanitizar |
+| R4 | Reporte con 0 resultados | Estado vacío | Mostrar mensaje vacío |
+| R5 | Cambio rápido de pestañas de reporte | Enojado | No duplicar solicitudes |
+| R6 | Exportar reporte durante su generación | Race condition | Manejar cancelación |
+
+---
+
+### 10. CONFIGURACIÓN
+
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| SE1 | Tasa de impuesto: valor negativo | Malicioso | Rechazar (mín: 0) |
+| SE2 | Tasa de impuesto: mayor a 100% | Malicioso | Rechazar (máx: 100) |
+| SE3 | Tasa de impuesto: `"12%"` (con símbolo %) | Descuidado | Parsear o rechazar |
+| SE4 | Símbolo de moneda: `<script>alert(1)</script>` | Malicioso: XSS almacenado | Sanitizar al renderizar |
+| SE5 | Símbolo de moneda: 100 caracteres con emojis | Malicioso | Limitar longitud |
+| SE6 | Nombre del negocio: override RTL | Malicioso | No romper layout |
+| SE7 | Email: formato inválido | Descuidado | Validar |
+| SE8 | Teléfono: letras | Descuidado | Sanitizar/validar |
+| SE9 | Clicks rápidos en guardar | Enojado | Debounce |
+| SE10 | Cambiar tasa de impuesto → ventas existentes se recalculan? | Regla de negocio | NO debe recalcular histórico |
+
+---
+
+### 11. IMPORT / EXPORT (Alto Riesgo - Integridad de Datos)
+
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| IM1 | Importar CSV de 100MB | Malicioso: DoS | Límite de tamaño, parseo streaming |
+| IM2 | Importar CSV malformado (comillas sin cerrar) | Malicioso: crash del parser | Error grácil |
+| IM3 | Importar CSV de 50,000 filas | Performance | Batch, progreso, no bloquear UI |
+| IM4 | Importar CSV: códigos duplicados en el archivo | Calidad de datos | Saltar o fusionar |
+| IM5 | Importar CSV: XSS en campo nombre `<img src=x onerror=alert(1)>` | Malicioso: XSS almacenado | Sanitizar al importar |
+| IM6 | Importar CSV: SQL injection en campos | Malicioso | Tratar como literal |
+| IM7 | Importar CSV: caracteres de control `\x00\x1F` | Malicioso | Eliminar caracteres de control |
+| IM8 | Importar CSV: encoding diferente (UTF-16, Latin1) | Mundo real | Detectar/manejar encoding |
+| IM9 | Importar JSON malformado | Malicioso: error de parseo | Capturar y mostrar error de fila |
+| IM10 | Importar JSON: referencia circular | Malicioso: stack overflow | Detectar circular |
+| IM11 | Importar JSON: prototype pollution `__proto__` | Crítico: prototype pollution | Sanitizar keys |
+| IM12 | Importar JSON: `constructor.prototype.polluted = true` | Prototype pollution | Sanitizar keys |
+| IM13 | Import: entidad incorrecta (archivo productos → clientes) | Descuidado: selección errónea | Auto-detectar o validar |
+| IM14 | Cancelar importación a medio proceso | Enojado: interrumpir | Rollback limpio |
+| IM15 | Import: fallo de red (simulado) | Offline | Reanudar o limpiar estado |
+| IM16 | Exportar 50,000 filas CSV | Performance | Stream, no en memoria |
+| IM17 | Exportar: caracteres especiales (comas, comillas, saltos de línea) | Integridad de datos | Escaping CSV correcto |
+| IM18 | Exportar: formula injection `=2+5` | Seguridad: CSV injection | Prefijar con `'` |
+| IM19 | Import export completo: referencias circulares entre entidades | Integridad de datos | Manejar dependencias |
+| IM20 | Import: documentId duplicado entre entidades | Regla de negocio | Único por entidad |
+| IM21 | Import: integridad referencial (venta referencia cliente eliminado) | Integridad de datos | Validar FK |
+
+---
+
+### 12. USUARIOS Y RBAC
+
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| U1 | Crear usuario: username duplicado | Regla de negocio | Constraint único |
+| U2 | Crear usuario: password menor a 8 caracteres | Política de seguridad | Exigir minlength |
+| U3 | Crear usuario: password igual al username | Password débil | Advertir o rechazar |
+| U4 | Crear usuario: rol = ID inválido | Malicioso: manipular select | Validar enum |
+| U5 | Auto-editar: bajar propio rol de admin | Escalada de privilegios | Bloquear o advertir |
+| U6 | Auto-eliminarse | Edge case | Bloquear |
+| U7 | Crear usuario con XSS en username | Malicioso: XSS almacenado | Sanitizar al renderizar |
+| U8 | Crear/eliminar usuarios rápidamente | Enojado: stress | Sin datos huérfanos |
+| U9 | Verificar permiso: URL directa a módulo de admin | Curioso: bypass UI | Check del lado del Service (no View) |
+| U10 | Sesión: modificar roleId en localStorage | Malicioso: escalada client-side | Service re-valida |
+| U11 | Dos pestañas: cerrar sesión en una, continuar en otra | Multi-pestaña | Sincronizar o redirigir |
+| U12 | Sesión expirada: intentar acción | Seguridad | Redirigir a login |
+
+---
+
+### 13. NAVEGACIÓN Y ROUTING
+
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| N1 | URL directa a `/products` sin login | Curioso: bypass | Redirigir a login |
+| N2 | URL directa a `/users` sin permiso admin | Curioso: bypass RBAC | Redirigir o 403 |
+| N3 | Botón Back del navegador después de enviar formulario | Descuidado: doble envío | No debe re-enviar |
+| N4 | Botón Back después de cerrar sesión | Descuidado: página cacheada | No debe mostrar datos |
+| N5 | Botón Forward después de Back | Navegación | Debe funcionar |
+| N6 | Refresh en cualquier módulo | Descuidado: pérdida de estado | Restaurar desde IndexedDB |
+| N7 | Abrir módulo en nueva pestaña (Ctrl+Click) | Multi-pestaña | Debe funcionar independientemente |
+| N8 | 50 pestañas abiertas, navegar rápidamente | Stress: memoria | Sin fugas |
+| N9 | Ruta inválida `/modulo-invalido` | Curioso: 404 | Mostrar error amigable |
+| N10 | Cambio de hash durante modal abierto | Race condition | Cerrar modal limpiamente |
+
+---
+
+### 14. MODALES Y OVERLAYS
+
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| M1 | Abrir modal, presionar ESC | Teclado: descartar | Debe cerrar |
+| M2 | Abrir modal, click en overlay | Mouse: descartar | Debe cerrar (si es cerrable) |
+| M3 | Abrir modal, click en overlay (no cerrable) | Malicioso: forzar cierre | NO debe cerrar |
+| M4 | Spam abrir/cerrar modal 50 veces | Enojado: stress | Sin fuga de memoria |
+| M5 | Abrir modal, redimensionar ventana | Móvil: orientación | Debe reposicionar |
+| M6 | Abrir modal, rotar dispositivo | Móvil | Debe adaptarse |
+| M7 | Abrir 2 modales simultáneamente | Race condition | Apilar o prevenir |
+| M8 | Focus trap del modal: Tab cicla correctamente | Accesibilidad | Foco se queda en el modal |
+| M9 | Modal: el foco regresa al trigger al cerrar | Accesibilidad | Restaurar foco |
+| M10 | ConfirmDialog: presionar Enter = confirmar? | Teclado | Debe requerir acción explícita |
+| M11 | ConfirmDialog: spam botón confirmar | Enojado: doble acción | Deshabilitar al primer click |
+
+---
+
+### 15. FORMULARIOS Y VALIDACIÓN
+
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| F1 | Campo requerido: solo espacios `"   "` | Descuidado: whitespace | Hacer trim y rechazar |
+| F2 | Campo requerido: zero-width space `​` | Malicioso: carácter invisible | Detectar |
+| F3 | Campo numérico: `Infinity` | Malicioso: JS special | Rechazar |
+| F4 | Campo numérico: `NaN` | Malicioso | Rechazar |
+| F5 | Campo numérico: `1e10` (notación científica) | Edge case | Parsear o rechazar |
+| F6 | Campo numérico: pegar "abc" | Descuidado: tipo incorrecto | Rechazar |
+| F7 | Campo email: `test@` | Descuidado: incompleto | Rechazar |
+| F8 | Campo email: `test@test@test.com` | Malicioso | Rechazar |
+| F9 | Select: manipular valor via DevTools | Curioso: bypassear opciones | Validar del lado del servicio |
+| F10 | Textarea: pegar 100KB | Malicioso: DoS | Límite de longitud |
+| F11 | Textarea: saltos de línea, tabs, RTL | Mundo real | Preservar o sanitizar |
+| F12 | Envío de formulario: doble-click | Enojado: doble POST | Deshabilitar al enviar |
+| F13 | Formulario: Enter en textarea = enviar? | UX: envío accidental | No debe enviar |
+| F14 | Autocompletado llena campo incorrecto | Comportamiento del browser | Atributos autocomplete correctos |
+| F15 | Validación: mensaje de error con XSS inyectado | Malicioso: inyección en msg error | Escapar mensajes de error |
+
+---
+
+### 16. TABLAS Y DATA GRIDS
+
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| T1 | Ordenar: click en header 20 veces rápido | Enojado: spam | Sin flicker, estable |
+| T2 | Ordenar: columna con valores null | Edge case | Nulls al final |
+| T3 | Ordenar: columna con tipos mixtos (str/num) | Calidad de datos | Orden consistente |
+| T4 | Paginación: tamaño de página 1000 | Performance | Virtualizar o limitar |
+| T5 | Paginación: saltar a página 999 | Edge case | Manejar graciosamente |
+| T6 | Búsqueda: escribir 50 caracteres/segundo | Enojado: stress | Debounce funciona |
+| T7 | Búsqueda: caracteres especiales regex `.*+?^${}()|[]\` | Malicioso: ReDoS | Búsqueda literal |
+| T8 | Click en fila: doble-click | Enojado: doble acción | Una sola acción |
+| T9 | Tabla vacía: rendimiento al renderizar | Edge case | Estado vacío rápido |
+| T10 | 10,000 filas: scroll, ordenar, filtrar | Performance | Scroll virtual |
 
 ---
 
 ### 17. OFFLINE / SERVICE WORKER / INDEXEDDB
 
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| O1 | Go offline → create sale → go online | Offline-first | Sync on reconnect |
-| O2 | Go offline → edit product → go online | Offline-first | Sync |
-| O3 | Go offline → delete customer → go online | Offline-first | Sync with conflict resolution |
-| O4 | Service Worker: cache corrupted | Recovery | Self-heal or prompt reset |
-| O5 | IndexedDB: quota exceeded (fill storage) | Stress | Graceful degradation |
-| O6 | IndexedDB: corrupt database | Recovery | "Reset DB" button works |
-| O7 | Multiple tabs: one clears DB, other has stale data | Multi-tab | BroadcastChannel sync |
-| O8 | Private/Incognito mode | Browser restriction | Handle gracefully |
-| O9 | Safari: IndexedDB blocked | Browser restriction | Fallback or error |
-| O10 | Slow network: SW serves stale, then updates | Stale-while-revalidate | Show fresh eventually |
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| O1 | Ir offline → crear venta → volver online | Offline-first | Sincronizar al reconectar |
+| O2 | Ir offline → editar producto → volver online | Offline-first | Sincronizar |
+| O3 | Ir offline → eliminar cliente → volver online | Offline-first | Sincronizar con resolución conflictos |
+| O4 | Service Worker: caché corrupto | Recuperación | Auto-reparar o pedir reinicio |
+| O5 | IndexedDB: cuota excedida (llenar almacenamiento) | Stress | Degradación grácil |
+| O6 | IndexedDB: base de datos corrupta | Recuperación | Botón "Restablecer DB" funciona |
+| O7 | Múltiples pestañas: una limpia la DB, otra tiene datos obsoletos | Multi-pestaña | Sincronizar via BroadcastChannel |
+| O8 | Modo Private/Incognito | Restricción del navegador | Manejar graciosamente |
+| O9 | Safari: IndexedDB bloqueado | Restricción del navegador | Fallback o error |
+| O10 | Red lenta: SW sirve datos obsoletos, luego actualiza | Stale-while-revalidate | Mostrar datos frescos eventualmente |
 
 ---
 
-### 18. SECURITY: XSS / INJECTION / PROTOTYPE POLLUTION
+### 18. SEGURIDAD: XSS / INJECTION / PROTOTYPE POLLUTION
 
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| X1 | Stored XSS: product name `<img src=x onerror=alert(1)>` | Persistent XSS | Escaped on render |
-| X2 | Stored XSS: customer address `"><script>steal()</script>` | Persistent XSS | Escaped on render |
-| X3 | Reflected XSS: search query `<script>alert(1)</script>` | Reflected XSS | Not reflected unsanitized |
-| X4 | DOM XSS: URL hash `#<img src=x onerror=alert(1)>` | DOM-based | Not used in innerHTML |
-| X5 | CSV Formula Injection: `=2+5` or `=HYPERLINK("...")` | CSV injection | Prefix with `'` |
-| X6 | JSON Import: `__proto__.polluted = true` | Prototype pollution | Sanitize keys |
-| X7 | JSON Import: `constructor.prototype.polluted = true` | Prototype pollution | Sanitize keys |
-| X8 | HTML in export viewed in Excel | CSV injection | Prefix formulas |
-| X9 | localStorage: inject malicious data | Client storage tampering | Validate on read |
-| X10 | sessionStorage: tamper token | Session hijacking | Validate server-side (service) |
-
----
-
-### 19. PERFORMANCE & MEMORY
-
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| P1 | Rapid module switching 100x | Stress: memory leaks | No increasing heap |
-| P2 | Open/close modals 500x | Stress: DOM leaks | No detached nodes |
-| P3 | Create/delete 1000 products | Stress: IndexedDB | Reasonable time |
-| P4 | Import 10,000 row CSV | Stress: blocking UI | Web Worker or chunked |
-| P5 | Table sort 100x on 5000 rows | Stress: CPU | < 100ms per sort |
-| P6 | Dashboard: rapid date range changes | Stress: API calls | Debounce/cancel prev |
-| P7 | Memory: navigate 100 tabs | Stress: leak | GC collects |
-| P8 | Long-running: leave app open 1 hour | Idle: timers | No runaway timers |
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| X1 | XSS almacenado: nombre producto `<img src=x onerror=alert(1)>` | XSS persistente | Escapado al renderizar |
+| X2 | XSS almacenado: dirección cliente `"><script>steal()</script>` | XSS persistente | Escapado al renderizar |
+| X3 | XSS reflejado: query de búsqueda `<script>alert(1)</script>` | XSS reflejado | No reflejado sin sanitizar |
+| X4 | DOM XSS: hash de URL `#<img src=x onerror=alert(1)>` | DOM-based | No usado en innerHTML |
+| X5 | CSV Formula Injection: `=2+5` o `=HYPERLINK("...")` | CSV injection | Prefijar con `'` |
+| X6 | Import JSON: `__proto__.polluted = true` | Prototype pollution | Sanitizar keys |
+| X7 | Import JSON: `constructor.prototype.polluted = true` | Prototype pollution | Sanitizar keys |
+| X8 | HTML en exportación visto en Excel | CSV injection | Prefijar formulas |
+| X9 | localStorage: inyectar datos maliciosos | Manipulación storage cliente | Validar al leer |
+| X10 | sessionStorage: manipular token | Session hijacking | Validar del lado del servicio |
 
 ---
 
-### 20. ACCESSIBILITY (a11y)
+### 19. PERFORMANCE Y MEMORIA
 
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| A1 | Tab navigation: full app | Keyboard only | Logical order, no traps |
-| A2 | Screen reader: NVDA/JAWS | a11y | ARIA labels, roles |
-| A3 | Focus indicators visible | Visual | Clear focus rings |
-| A4 | Color contrast: dark mode | Visual | WCAG AA |
-| A5 | Zoom 200%: layout holds | Low vision | No horizontal scroll |
-| A6 | Reduced motion: animations off | Vestibular | Respects prefers-reduced-motion |
-| A7 | ARIA live regions: toasts | Screen reader | Announces |
-| A8 | Form labels: all inputs labeled | a11y | No orphan inputs |
-| A9 | Modal: focus trap | Keyboard | Stays in modal |
-| A10 | Table: headers associated | Screen reader | scope="col" |
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| P1 | Cambio rápido de módulos 100 veces | Stress: fugas memoria | Heap sin crecimiento |
+| P2 | Abrir/cerrar modales 500 veces | Stress: fugas DOM | Sin nodos desprendidos |
+| P3 | Crear/eliminar 1000 productos | Stress: IndexedDB | Tiempo razonable |
+| P4 | Importar CSV de 10,000 filas | Stress: UI bloqueante | Web Worker o chunked |
+| P5 | Ordenar tabla 100 veces en 5000 filas | Stress: CPU | Menos de 100ms por ordenamiento |
+| P6 | Dashboard: cambios rápidos de rango de fechas | Stress: llamadas API | Debounce/cancelar anterior |
+| P7 | Memoria: navegar 100 módulos | Stress: fuga | GC recolecta |
+| P8 | Larga duración: dejar app abierta 1 hora | Inactividad: timers | Sin timers descontrolados |
 
 ---
 
-### 21. MOBILE / RESPONSIVE
+### 20. ACCESIBILIDAD (a11y)
 
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| M1 | Viewport 320px: all modules usable | Mobile | Horizontal scroll only on tables |
-| M2 | Landscape ↔ Portrait rotation | Mobile | Layout adapts |
-| M3 | Virtual keyboard opens: modal resizes | Mobile | Input visible |
-| M4 | Touch: swipe to scroll table | Touch | Works |
-| M5 | Touch: tap targets ≥ 44px | Touch | Accessible |
-| M6 | iOS Safari: 100vh viewport bug | Browser quirk | Handles correctly |
-| M7 | Android Chrome: pull-to-refresh | Browser | Doesn't break app |
-| M8 | Zoom 200%: text readable | Low vision | Reflows |
-
----
-
-### 22. EDGE CASES & IMPOSSIBLE STATES
-
-| # | Scenario | Adversarial Angle | Expected Failure Mode |
-|---|----------|-------------------|----------------------|
-| E1 | Leap year: Feb 29 sales/reports | Date edge case | Handles correctly |
-| E2 | DST transition: sale at 2:30am (clocks back) | Timezone | Consistent timestamps |
-| E3 | Year 2038: date handling | 32-bit time | Uses JS Date (64-bit) |
-| E4 | Concurrent: two sales same product, last item | Race condition | Atomic stock check |
-| E5 | Sale created → product deleted → view sale | Referential integrity | Shows product name from sale |
-| E6 | Customer merged (manual DB) → sales reference | Data integrity | Handles gracefully |
-| E7 | Tax rate changed → old sales show new rate? | Business rule | Old sales keep original rate |
-| E8 | Currency changed → old reports | Business rule | Shows original currency |
-| E9 | User deleted → created by user shows "Deleted User" | Data integrity | Soft delete or placeholder |
-| E10 | App version upgrade: schema migration v7→v8 | Migration | Auto-migrate, no data loss |
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| A1 | Navegación Tab: app completa | Solo teclado | Orden lógico, sin trampas |
+| A2 | Lector de pantalla: NVDA/JAWS | a11y | Labels ARIA, roles |
+| A3 | Indicadores de foco visibles | Visual | Anillos de foco claros |
+| A4 | Contraste de color: modo oscuro | Visual | WCAG AA |
+| A5 | Zoom al 200%: layout se mantiene | Baja visión | Sin scroll horizontal |
+| A6 | Reduced motion: animaciones apagadas | Vestibular | Respeta prefers-reduced-motion |
+| A7 | Regiones ARIA live: toasts | Lector pantalla | Anuncia |
+| A8 | Labels de formularios: todos los inputs etiquetados | a11y | Sin inputs huérfanos |
+| A9 | Modal: focus trap | Teclado | Se queda en el modal |
+| A10 | Tabla: headers asociados | Lector pantalla | scope="col" |
 
 ---
 
-## Test Execution Strategy
+### 21. MÓVIL / RESPONSIVE
 
-### Phase 1: Automated Regression (Existing)
-- Run `npm test` (45 suites, 410+ tests)
-- Run `npm run test:e2e` (38 E2E scenarios)
-- **Goal:** Baseline must pass 100%
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| M1 | Viewport 320px: todos los módulos usables | Móvil | Scroll horizontal solo en tablas |
+| M2 | Rotación Landscape ↔ Portrait | Móvil | Layout se adapta |
+| M3 | Teclado virtual se abre: modal se redimensiona | Móvil | Input visible |
+| M4 | Touch: swipe para scroll en tabla | Táctil | Funciona |
+| M5 | Touch: objetivos táctiles ≥ 44px | Táctil | Accesible |
+| M6 | iOS Safari: bug de 100vh | Quirk del browser | Maneja correctamente |
+| M7 | Android Chrome: pull-to-refresh | Browser | No rompe la app |
+| M8 | Zoom 200%: texto legible | Baja visión | Reflujo |
 
-### Phase 2: Adversarial Exploratory (Manual + Semi-Auto)
-- Execute scenarios from tables above
-- Prioritize: **Sales/Purchases (money)**, **Import/Export (data integrity)**, **Auth (security)**
-- Use Playwright for scriptable adversarial flows
+---
 
-### Phase 3: Stress & Chaos
-- Concurrent users (Playwright multi-context)
-- Network throttling (DevTools / Playwright)
-- Large datasets (seed 10k+ records)
-- Memory profiling (Chrome DevTools)
+### 22. EDGE CASES Y ESTADOS IMPOSIBLES
 
-### Phase 4: Security Focused
-- XSS payloads in every input
+| # | Escenario | Ángulo Adversario | Falla Esperada |
+|---|-----------|-------------------|----------------|
+| E1 | Año bisiesto: ventas/reportes del 29 de Feb | Edge case de fecha | Maneja correctamente |
+| E2 | Transición horario de verano: venta a las 2:30am (reloj retrocede) | Zona horaria | Timestamps consistentes |
+| E3 | Año 2038: manejo de fechas | Tiempo 32-bit | Usa JS Date (64-bit) |
+| E4 | Concurrente: dos ventas del mismo producto, último item | Race condition | Check de stock atómico |
+| E5 | Venta creada → producto eliminado → ver venta | Integridad referencial | Muestra nombre desde venta |
+| E6 | Cliente fusionado (DB manual) → ventas lo referencian | Integridad de datos | Maneja graciosamente |
+| E7 | Tasa de impuesto cambiada → ventas viejas muestran nueva tasa? | Regla de negocio | Ventas viejas mantienen tasa original |
+| E8 | Moneda cambiada → reportes viejos | Regla de negocio | Muestra moneda original |
+| E9 | Usuario eliminado → "creado por" muestra "Usuario Eliminado" | Integridad de datos | Soft delete o placeholder |
+| E10 | Upgrade de versión: migración de schema v7→v8 | Migración | Auto-migrate, sin pérdida de datos |
+
+---
+
+## Estrategia de Ejecución
+
+### Fase 1: Regresión Automatizada (Existente)
+- Ejecutar `npm test` (45 suites, 410+ tests)
+- Ejecutar `npm run test:e2e` (38 escenarios E2E)
+- **Meta:** Baseline debe pasar 100%
+
+### Fase 2: Exploratorio Adversarial (Manual + Semi-Automatizado)
+- Ejecutar escenarios de las tablas anteriores
+- Priorizar: **Ventas/Compras (dinero)**, **Import/Export (integridad datos)**, **Auth (seguridad)**
+- Usar Playwright para flujos adversariales scripteables
+
+### Fase 3: Stress & Chaos
+- Usuarios concurrentes (Playwright multi-context)
+- Limitación de red (DevTools / Playwright)
+- Datasets grandes (seed 10k+ registros)
+- Perfilado de memoria (Chrome DevTools)
+
+### Fase 4: Seguridad Enfocada
+- Payloads XSS en cada input
 - Prototype pollution via import
 - CSV formula injection
-- RBAC bypass attempts
+- Intentos de bypass RBAC
 
-### Phase 5: Accessibility & Mobile
-- axe-core automated scan
-- Manual keyboard navigation
-- Mobile viewport testing
+### Fase 5: Accesibilidad y Móvil
+- Escaneo automatizado con axe-core
+- Navegación manual por teclado
+- Testing en viewport móvil
 
 ---
 
-## Bug Reporting Template
+## Template para Reporte de Bugs
 
 ```markdown
-## Title
-[Module] Short description — e.g., "Sales: Double-click 'Guardar Venta' creates duplicate sale"
+## Título
+[Módulo] Descripción corta — ej: "Ventas: Doble-click 'Guardar Venta' crea venta duplicada"
 
-## Severity
+## Severidad
 Critical / High / Medium / Low / Enhancement
 
-## Area
-Sales / Products / Auth / Import / etc.
+## Área
+Ventas / Productos / Auth / Import / etc.
 
-## Preconditions
-1. Logged in as admin
-2. Product "Laptop" exists with stock=1
-3. Customer "Juan" exists
+## Precondiciones
+1. Logueado como admin
+2. Producto "Laptop" existe con stock=1
+3. Cliente "Juan" existe
 
-## Steps
-1. Navigate to Ventas
+## Pasos
+1. Ir a Ventas
 2. Click "+ Nueva Venta"
-3. Select customer, add product qty=1
-4. Rapidly double-click "Guardar Venta"
-5. Observe toast messages and sales list
+3. Seleccionar cliente, agregar producto qty=1
+4. **Doble-click rápido "Guardar Venta"**
+5. Observar toasts y lista de ventas
 
-## Expected Result
-Single sale created, button disabled after first click
+## Resultado Esperado
+Una sola venta creada, botón deshabilitado después del primer click
 
-## Actual Result
-Two sales created with same items, stock decremented twice
+## Resultado Real
+Dos ventas creadas con los mismos items, stock decrementado dos veces
 
-## Evidence
-- Screenshot: duplicate sales in list
-- Console: no errors
-- Network: two POST-equivalent IndexedDB transactions
-- IndexedDB: two sale records, stock = -1
+## Evidencia
+- Screenshot: ventas duplicadas en la lista
+- Consola: sin errores
+- Red: dos transacciones IndexedDB equivalentes a POST
+- IndexedDB: dos registros de venta, stock = -1
 
-## Possible Cause
-Frontend: missing submit button disable on click
-Backend: Service lacks idempotency key / race condition in stock check
-Race condition: concurrent transactions read same stock value
+## Causa Posible
+Frontend: falta deshabilitar botón submit al hacer click
+Backend: Service carece de clave de idempotencia / race condition en check de stock
+Race condition: transacciones concurrentes leen el mismo valor de stock
 
-## Reproducibility
-100% on double-click, 0% on single click
+## Reproducibilidad
+100% con doble-click, 0% con click simple
 ```
 
 ---
 
-## Tooling & Helpers
+## Herramientas y Ayudantes
 
-| Tool | Purpose |
+| Herramienta | Propósito |
+|-------------|-----------|
+| Playwright | Automatización E2E, multi-pestaña, control de red |
+| Chrome DevTools | Memoria, Rendimiento, Red, Aplicación (IndexedDB) |
+| axe-core | Escaneo automatizado de accesibilidad |
+| Scripts personalizados | Seed de datasets grandes, testers de prototype pollution |
+| OWASP ZAP | Escaneo de seguridad (si hay servidor HTTP) |
+
+---
+
+## Criterios de Aceptación para QA
+
+- [ ] Todos los tests de la Fase 1 pasan (baseline)
+- [ ] Todos los escenarios adversarios Critical/High ejecutados
+- [ ] Cero bugs Critical abiertos
+- [ ] Cero bugs High abiertos sin plan de mitigación
+- [ ] Escenarios de seguridad: XSS, Prototype Pollution, CSV Injection verificados como corregidos
+- [ ] Performance: sin fugas de memoria en corrida de 1 hora
+- [ ] Accesibilidad: axe-core 0 violaciones (AA)
+- [ ] Móvil: viewport 320px funcional
+- [ ] Offline: crear/editar/eliminar funciona offline, sincroniza online
+
+---
+
+## Áreas de Riesgo que Requieren Atención Extra
+
+| Área | Por Qué |
 |------|---------|
-| Playwright | E2E automation, multi-tab, network control |
-| Chrome DevTools | Memory, Performance, Network, Application (IndexedDB) |
-| axe-core | Automated a11y scanning |
-| Custom scripts | Seed large datasets, prototype pollution testers |
-| OWASP ZAP | Security scanning (if HTTP server) |
+| **Atomicidad de stock en Ventas/Compras** | Race conditions = pérdida de dinero |
+| **Import/Export** | Corrupción de datos, XSS, prototype pollution |
+| **Autenticación/Sesión** | Solo client-side = riesgo de escalada |
+| **Asientos contables** | Integridad financiera, trail de auditoría |
+| **Sincronización offline** | Resolución de conflictos, pérdida de datos |
+| **RBAC enforcement** | Todos los checks están en la capa Service, no en View |
 
 ---
 
-## Definition of Done for QA
-
-- [ ] All Phase 1 tests pass (baseline)
-- [ ] All Critical/High adversarial scenarios executed
-- [ ] Zero Critical bugs open
-- [ ] Zero High bugs open without mitigation plan
-- [ ] Security scenarios: XSS, Prototype Pollution, CSV Injection verified fixed
-- [ ] Performance: no memory leaks in 1hr run
-- [ ] Accessibility: axe-core 0 violations (AA)
-- [ ] Mobile: 320px viewport functional
-- [ ] Offline: create/edit/delete works offline, syncs online
-
----
-
-## Risk Areas Requiring Extra Attention
-
-| Area | Why |
-|------|-----|
-| **Sales/Purchases stock atomicity** | Race conditions = money loss |
-| **Import/Export** | Data corruption, XSS, prototype pollution |
-| **Authentication/Session** | Client-side only = escalation risk |
-| **Accounting entries** | Financial integrity, audit trail |
-| **Offline sync** | Conflict resolution, data loss |
-| **RBAC enforcement** | All checks in Service layer, not View |
-
----
-
-*Plan created per A-QA-Breaker methodology: Assume broken, prove otherwise.*
+*Plan creado bajo metodología A-QA-Breaker: Asumir roto, probar lo contrario.*
