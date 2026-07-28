@@ -127,9 +127,13 @@ Al generar o modificar código, se aplican las skills en el siguiente orden estr
 ## Tests
 - Runner unit/integration: `tests/run-all.js`
 - Runner E2E: `npm run test:e2e` (Playwright + Chromium headless, port 3099)
+- Smoke test visible: `node tests/e2e/smoke-visible.js` (headed, slowMo 200ms, graba video)
 - 45 suites unit/integration, 410+ tests, 0 fallos (incluye 9 suites de integración con 54+ tests)
 - 38 tests E2E, 0 fallos (cubre todos los módulos: setup, login, productos, clientes, proveedores, ventas, compras, inventario, contabilidad, reportes, settings, export, import, usuarios)
 - Cada suite unitaria crea sus propios mocks (sin isolation entre suites)
+
+## Archivos confidenciales — NO subir a GitHub
+- `GUIA_ENTREVISTA_BANRURAL.md` — agregado a `.gitignore` para evitar subida accidental
 
 ## Verificación final
 - Ejecutar `node tests/run-all.js` y confirmar **0 fallos** antes de dar por terminado cualquier cambio.

@@ -175,6 +175,22 @@
 
 ---
 
+## Smoke Test Visible
+
+**Archivo:** `tests/e2e/smoke-visible.js`
+
+| Métrica | Valor |
+|---------|-------|
+| Escenario | 1 flujo completo (9 pasos) |
+| Resultado | ✅ COMPLETADO |
+| Video | `videos/smoke-{timestamp}.webm` |
+
+**Flujo:** Setup → Login → Dashboard → Productos (2) → Clientes (2) → Ventas (1) → Logout
+
+**Nota:** Corregido error donde el script intentaba hacer `fill()` en `#field-documentId` que es readonly (auto-generado por el sistema).
+
+---
+
 ## Resumen Global
 
 | Fase | Tests | Pasaron | Resultado |
@@ -185,7 +201,8 @@
 | Fase 3: Stress & Chaos | 10 | 10 | ✅ |
 | Fase 4: Seguridad | 10 | 10 | ✅ |
 | Fase 5: Accesibilidad y Móvil | 12 | 12 | ✅ |
-| **Total** | **159** | **159** | ✅ **100%** |
+| Smoke Test Visible | 1 | 1 | ✅ |
+| **Total** | **160** | **160** | ✅ **100%** |
 
 **Hallazgos corregidos durante el proceso:**
 1. Tests adversariales: 6 tests verificaban toast notification en lugar de error inline; se corrigieron para chequear `#error-name`, `#error-purchasePrice`, `#error-password`
@@ -194,5 +211,6 @@
 4. Security X9: Timeout por waitUntil 'networkidle' con localStorage corrupto; cambiado a 'domcontentloaded'
 5. A11y R3: Sidebar oculta en móvil requería abrir menú hamburguesa antes de navegar
 6. A11y R5: Botón "Nuevo Producto" no visible en viewport 375px; se agregó scrollIntoViewIfNeeded
+7. Smoke test: `fill('#field-documentId')` fallaba porque el campo es readonly (auto-generado por el sistema). Se corrigió omitiendo ese campo.
 
-*Última actualización: 2026-07-16*
+*Última actualización: 2026-07-28*

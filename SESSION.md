@@ -1,7 +1,7 @@
 # Session — Open RootERP v1.0.0
 
 ## Fecha
-Julio 16, 2026 — Primer lanzamiento público
+Julio 28, 2026 — Smoke test visible + grabación de video
 
 ## Estado general
 **v1.0.0** — Primer release. 45 suites unit/integration, 76 escenarios E2E adversariales, 5 fases QA completadas.
@@ -20,6 +20,9 @@ Julio 16, 2026 — Primer lanzamiento público
 | 8 | **Bump versión** 1.3.0 → 1.4.0 | `package.json` |
 | 9 | **Dark mode — texto ilegible** — Faltaban `--color-muted`, `--color-bg-secondary`, y `color` en `body`. Se agregaron variables y se fijó `color: var(--color-text)` en body | `assets/css/variables.css` |
 | 10 | **Dark mode — badges/estados** — `.status--*`, `.report-stat--*`, `.import-results__badge--*`, `.acct-total-*`, `.btn--ghost-danger` ahora usan fondo sólido + texto blanco en modo oscuro | `assets/css/variables.css` |
+| 11 | **Smoke test visible con video** — Nuevo script `smoke-visible.js` con navegador headed, slowMo 200ms, grabación de video WebM. Corrige error: `field-documentId` es readonly (auto-generado), no se debe llenar | `tests/e2e/smoke-visible.js` |
+| 12 | **Documentación y videos** — SESSION, E2E_TESTS, QA_RESULTS, README actualizados. Videos de smoke test subidos a GitHub | varios .md, `videos/` |
+| 13 | **Gitignore: GUIA_ENTREVISTA_BANRURAL.md** — Archivo confidencial agregado a `.gitignore` para evitar subida accidental a GitHub | `.gitignore` |
 
 ## Tests
 

@@ -5,6 +5,31 @@
 
 ---
 
+## `tests/e2e/smoke-visible.js` — Smoke test visible con grabación de video
+
+Prueba de humo que ejecuta el flujo principal del ERP en **navegador visible (headed)** con `slowMo: 200ms` para que un humano pueda seguirlo visualmente. Graba video WebM de toda la ejecución.
+
+**Ejecución:**
+```bash
+node tests/e2e/smoke-visible.js
+```
+
+**Flujo (9 pasos):**
+1. Setup inicial (negocio + admin)
+2. Login
+3. Dashboard (verifica tarjetas KPI)
+4. Productos (crea Laptop Gamer + Mouse Inalámbrico)
+5. Clientes (crea Juan Pérez + María García)
+6. Ventas (crea una venta con cliente y producto)
+7. Cerrar sesión
+
+**Salida:** Video guardado en `videos/smoke-{timestamp}.webm` (1280×800).
+En caso de error, captura screenshot automático en `videos/smoke-error-{timestamp}.png`.
+
+**Nota:** El campo `documentId` en clientes es readonly (auto-generado), el script no debe intentar llenarlo.
+
+---
+
 ## `tests/e2e/phase2-adversarial.js` — 44 escenarios
 
 Cubre interacciones adversariales: entradas inválidas, doble-click, fuerza bruta, spam, datos maliciosos.
@@ -83,8 +108,9 @@ Cubre accesibilidad WCAG y responsive design.
 
 | Archivo | Escenarios | Cobertura |
 |---------|-----------|-----------|
+| `smoke-visible.js` | 1 (9 pasos) | Smoke test visible con video |
 | `phase2-adversarial.js` | 44 | Adversarial / input validation / stress UX |
 | `phase3-stress.js` | 10 | Performance / memoria / concurrencia |
 | `phase4-security.js` | 10 | XSS / prototype pollution / CSV injection |
 | `phase5-a11y.js` | 12 | Accesibilidad / responsive / táctil |
-| **Total** | **76** | **5 fases QA** |
+| **Total** | **77+** | **5 fases QA + smoke test** |

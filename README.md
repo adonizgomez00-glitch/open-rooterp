@@ -15,9 +15,9 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de pruebas** | **524+** |
+| **Total de pruebas** | **525+** |
 | **Tasa de aprobación** | **100%** |
-| **Defectos encontrados y corregidos** | **15+ críticos** |
+| **Defectos encontrados y corregidos** | **16+ críticos** |
 | **Cobertura de módulos** | **14/14 completos** |
 
 ### Desglose por Tipo de Prueba
@@ -36,7 +36,7 @@
 
 | Herramienta | Propósito |
 |-------------|-----------|
-| **Playwright** | E2E automatizado, multi-pestaña, control de red, Chromium headless |
+| **Playwright** | E2E automatizado, multi-pestaña, control de red, Chromium headless + headed |
 | **Custom Node Runner** | Unitarias/integración con DOM shim (`tests/run-all.js`) |
 | **axe-core** | Escaneo automatizado de accesibilidad WCAG 2.1 AA |
 | **Chrome DevTools** | Perfilado memoria, rendimiento, IndexedDB, red |
@@ -133,6 +133,10 @@ npm run test:e2e
 
 # 5. Tests QA Adversariales (5 fases, 76 tests)
 # Se ejecutan dentro de test:e2e usando tests/e2e/phase*.js
+
+# 6. Smoke test visible con video (headed, slowMo)
+node tests/e2e/smoke-visible.js
+# ✅ Video guardado en videos/smoke-*.webm
 ```
 
 ### Verificación Rápida (30 segundos)
@@ -217,8 +221,8 @@ python3 -m http.server 3000
 | [ESTADO PROYECTO](docs/PROJECT_STATE.md) | Métricas detalladas, deuda técnica, riesgos, archivos clave |
 | [CONTEXTO](docs/Context.md) | Stack, 14 módulos, utils, RBAC, fixes, skills prioritarias |
 | [INSTALACIÓN](docs/INSTALL.md) | Setup.sh/bat, manual, primer uso, actualización |
-| [TESTS E2E](docs/E2E_TESTS.md) | 76 tests en 4 archivos, helpers, cobertura por módulo |
-| [RESULTADOS QA](docs/QA_RESULTS.md) | 159 tests totales, 100% pass, hallazgos corregidos |
+| [TESTS E2E](docs/E2E_TESTS.md) | 76 tests + smoke test visible, helpers, cobertura por módulo |
+| [RESULTADOS QA](docs/QA_RESULTS.md) | 160 tests totales, 100% pass, hallazgos corregidos |
 | [TEMA](docs/THEME_MANAGER.md) | ThemeManager API, singleton, localStorage, uso |
 
 ---
@@ -317,9 +321,9 @@ MIT License — Ver [LICENSE](LICENSE) para detalles.
 
 | Metric | Value |
 |--------|-------|
-| **Total Tests** | **524+** |
+| **Total Tests** | **525+** |
 | **Pass Rate** | **100%** |
-| **Defects Found & Fixed** | **15+ Critical** |
+| **Defects Found & Fixed** | **16+ Critical** |
 | **Module Coverage** | **14/14 Complete** |
 
 ### Breakdown by Test Type
@@ -338,7 +342,7 @@ MIT License — Ver [LICENSE](LICENSE) para detalles.
 
 | Tool | Purpose |
 |------|---------|
-| **Playwright** | E2E automation, multi-tab, network control, Chromium headless |
+| **Playwright** | E2E automation, multi-tab, network control, Chromium headless + headed |
 | **Custom Node Runner** | Unit/Integration with DOM shim (`tests/run-all.js`) |
 | **axe-core** | Automated WCAG 2.1 AA accessibility scanning |
 | **Chrome DevTools** | Memory profiling, performance, IndexedDB, network |
@@ -435,6 +439,10 @@ npm run test:e2e
 
 # 5. Adversarial QA tests (5 phases, 76 tests)
 # Run within test:e2e via tests/e2e/phase*.js
+
+# 6. Visible smoke test with video recording (headed, slowMo)
+node tests/e2e/smoke-visible.js
+# ✅ Video saved to videos/smoke-*.webm
 ```
 
 ### Quick Verification (30 seconds)
@@ -519,8 +527,8 @@ python3 -m http.server 3000
 | [PROJECT STATE](docs/PROJECT_STATE.md) | Detailed metrics, tech debt, risks, key files |
 | [CONTEXT](docs/Context.md) | Stack, 14 modules, utils, RBAC, fixes, priority skills |
 | [INSTALL](docs/INSTALL.md) | Setup.sh/bat, manual, first run, updates |
-| [E2E TESTS](docs/E2E_TESTS.md) | 76 tests in 4 files, helpers, module coverage |
-| [QA RESULTS](docs/QA_RESULTS.md) | 159 total tests, 100% pass, fixed findings |
+| [E2E TESTS](docs/E2E_TESTS.md) | 76 tests + visible smoke test, helpers, module coverage |
+| [QA RESULTS](docs/QA_RESULTS.md) | 160 total tests, 100% pass, fixed findings |
 | [THEME](docs/THEME_MANAGER.md) | ThemeManager API, singleton, localStorage, usage |
 
 ---
@@ -561,8 +569,9 @@ open-rooterp/
 │   ├── controllers/           # 14 controller suites
 │   ├── integration/           # 9 integration suites (54+ tests)
 │   ├── utils/                 # 5 utility suites
-│   └── e2e/                   # Playwright: phase2-adversarial, phase3-stress, phase4-security, phase5-a11y
+│   └── e2e/                   # Playwright: smoke-visible, phase2-adversarial, phase3-stress, phase4-security, phase5-a11y
 │
+├── videos/                     # Smoke test recordings (.webm)
 ├── ARCHITECTURE.md
 ├── QA_TESTING_PLAN.md
 ├── ROADMAP.md
