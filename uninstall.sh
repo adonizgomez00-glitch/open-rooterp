@@ -35,8 +35,8 @@ fi
 
 # ------ 2. Remover auto-inicio cron ------
 echo -e "${YELLOW}[2/5] Removiendo auto-inicio cron...${NC}"
-if crontab -l 2>/dev/null | grep -q "http.server"; then
-  crontab -l 2>/dev/null | grep -v "http.server" | crontab -
+if crontab -l 2>/dev/null | grep -qF "$(pwd)"; then
+  crontab -l 2>/dev/null | grep -vF "$(pwd)" | crontab -
   echo -e "${GREEN}[OK]${NC} Entrada cron removida"
 else
   echo -e "${YELLOW}[INFO]${NC} No se encontro entrada cron"
