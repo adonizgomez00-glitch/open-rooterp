@@ -96,7 +96,7 @@ EOF
   fi
 else
   CRON_LINE="@reboot cd $(pwd) && python3 -m http.server $PORT &"
-  (crontab -l 2>/dev/null | grep -v "http.server"; echo "$CRON_LINE") | crontab -
+  (crontab -l 2>/dev/null | grep -vF "$(pwd)"; echo "$CRON_LINE") | crontab -
   echo -e "${GREEN}[OK]${NC} Auto-inicio configurado con cron @reboot"
 fi
 
