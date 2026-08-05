@@ -2,6 +2,9 @@
 title Open Root ERP - Desinstalacion
 chcp 65001 >nul
 
+REM Ejecutar siempre desde el propio directorio del proyecto
+cd /d "%~dp0"
+
 echo ========================================
 echo   Open Root ERP - Desinstalacion
 echo ========================================
