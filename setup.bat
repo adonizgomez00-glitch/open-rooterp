@@ -82,14 +82,29 @@ if %ERRORLEVEL% equ 0 (
 )
 echo %PORT%>"%PORT_FILE%"
 
-REM ------ 6. Auto-inicio obligatorio (carpeta de inicio) ------
+REM ------ 6. Auto-inicio obligatorio (lanzador oculto sin ventana) ------
 echo.
-echo Configurando auto-inicio del servidor...
+echo Configurando auto-inicio del servidor (en segundo plano)...
 set STARTUP_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
-echo @echo off > "%STARTUP_DIR%\OpenRootERP.bat"
-echo cd /d "%~dp0" >> "%STARTUP_DIR%\OpenRootERP.bat"
-echo python3 -m http.server %PORT% >> "%STARTUP_DIR%\OpenRootERP.bat"
-echo [OK] Auto-inicio configurado en carpeta de inicio
+
+REM Detectar el interprete de Python disponible
+set PYCMD=python3
+where python3 >nul 2>nul
+if %ERRORLEVEL% neq 0 (
+    set PYCMD=python
+    where python >nul 2>nul
+    if %ERRORLEVEL% neq 0 set PYCMD=py -3
+)
+
+REM Ruta del proyecto sin barra final para usarla como --directory
+set ABSDIR=%~dp0
+set ABSDIR=%ABSDIR:~0,-1%
+
+(
+    echo Set sh = CreateObject("WScript.Shell"^)
+    echo sh.Run "%PYCMD% -m http.server %PORT% --directory ""%ABSDIR%""", 0, False
+) > "%STARTUP_DIR%\OpenRootERP.vbs"
+echo [OK] Auto-inicio oculto configurado en carpeta de inicio
 
 REM ------ 7. Iniciar servidor ------
 echo.

@@ -38,10 +38,15 @@ echo.
 REM ------ 2. Remover auto-inicio carpeta de inicio ------
 echo [2/5] Removiendo auto-inicio de carpeta de inicio...
 set STARTUP_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
+if exist "%STARTUP_DIR%\OpenRootERP.vbs" (
+    del "%STARTUP_DIR%\OpenRootERP.vbs"
+    echo [OK] OpenRootERP.vbs removido de inicio
+)
 if exist "%STARTUP_DIR%\OpenRootERP.bat" (
     del "%STARTUP_DIR%\OpenRootERP.bat"
     echo [OK] OpenRootERP.bat removido de inicio
-) else (
+)
+if not exist "%STARTUP_DIR%\OpenRootERP.vbs" if not exist "%STARTUP_DIR%\OpenRootERP.bat" (
     echo [INFO] No se encontro archivo de inicio
 )
 echo.
