@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ERP Ligero Offline - Script de instalacion (Linux)
+# Open Root ERP - Script de instalacion (Linux)
 # Uso: chmod +x setup.sh && ./setup.sh
 set -e
 
@@ -9,7 +9,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}  ERP Ligero Offline - Instalacion${NC}"
+echo -e "${GREEN}  Open Root ERP - Instalacion${NC}"
 echo -e "${GREEN}========================================${NC}"
 
 # ------ 1. Verificar Node.js ------
@@ -51,31 +51,81 @@ else
     exit 1
 fi
 
-# ------ 5. Abrir navegador ------
-echo ""
+# ------ 5. Detectar puerto (persistente) ------
+PORT_FILE=".openroot-erp-port"
+if [ -f "$PORT_FILE" ]; then
+  PORT=$(cat "$PORT_FILE")
+  netstat -tuln 2>/dev/null | grep -q ":$PORT " && {
+    echo -e "${YELLOW}[WARN]${NC} Puerto $PORT en uso, buscando otro...${NC}"
+    PORT=3000
+  }
+else
+  PORT=3000
+fi
+while ss -tuln 2>/dev/null | grep -q ":$PORT " || lsof -i :$PORT >/dev/null 2>&1; do
+  PORT=$((PORT + 1))
+done
+echo "$PORT" > "$PORT_FILE"
 
-# Intentar abrir el navegador segun el entorno
-if command -v xdg-open &>/dev/null; then
-    xdg-open http://localhost:3000 &>/dev/null || true
-elif command -v sensible-browser &>/dev/null; then
-    sensible-browser http://localhost:3000 &>/dev/null || true
-elif command -v gnome-open &>/dev/null; then
-    gnome-open http://localhost:3000 &>/dev/null || true
+# ------ 6. Auto-inicio obligatorio ------
+echo ""
+echo -e "${YELLOW}Configurando auto-inicio del servidor...${NC}"
+if command -v systemctl &>/dev/null; then
+  SERVICE_FILE="$HOME/.config/systemd/user/openrooterp.service"
+  mkdir -p "$(dirname "$SERVICE_FILE")"
+  cat > "$SERVICE_FILE" <<EOF
+[Unit]
+Description=Open Root ERP Server
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=$(pwd)
+ExecStart=$(which python3) -m http.server $PORT
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+EOF
+  if systemctl --user daemon-reload 2>/dev/null && systemctl --user enable openrooterp.service 2>/dev/null; then
+    echo -e "${GREEN}[OK]${NC} Auto-inicio configurado con systemd user service"
+  else
+    CRON_LINE="@reboot cd $(pwd) && python3 -m http.server $PORT &"
+    (crontab -l 2>/dev/null | grep -v "http.server"; echo "$CRON_LINE") | crontab -
+    echo -e "${GREEN}[OK]${NC} Auto-inicio configurado con cron @reboot (fallback)"
+  fi
+else
+  CRON_LINE="@reboot cd $(pwd) && python3 -m http.server $PORT &"
+  (crontab -l 2>/dev/null | grep -v "http.server"; echo "$CRON_LINE") | crontab -
+  echo -e "${GREEN}[OK]${NC} Auto-inicio configurado con cron @reboot"
 fi
 
-# ------ 6. Iniciar servidor ------
+# ------ 7. Abrir navegador ------
+echo ""
+
+# Intentar abrir el navegador según el entorno
+if command -v xdg-open &>/dev/null; then
+  xdg-open http://localhost:$PORT &>/dev/null || true
+elif command -v sensible-browser &>/dev/null; then
+  sensible-browser http://localhost:$PORT &>/dev/null || true
+elif command -v gnome-open &>/dev/null; then
+  gnome-open http://localhost:$PORT &>/dev/null || true
+fi
+
+# ------ 8. Iniciar servidor ------
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}  Servidor iniciado en:${NC}"
-echo -e "${GREEN}  http://localhost:3000${NC}"
+echo -e "${GREEN}  http://localhost:${PORT}${NC}"
+echo -e "${GREEN}  Puerto guardado en: ${PORT_FILE}${NC}"
 echo -e "${GREEN}========================================${NC}"
 
 if command -v python3 &>/dev/null; then
-    python3 -m http.server 3000
+  python3 -m http.server $PORT
 elif command -v python &>/dev/null; then
-    python -m http.server 3000
+  python -m http.server $PORT
 else
-    echo -e "${RED}[ERROR] No se encontro Python.${NC}"
-    echo "Instalalo o ejecuta manualmente:"
-    echo "  npx serve ."
-    exit 1
+  echo -e "${RED}[ERROR] No se encontro Python.${NC}"
+  echo "Instalalo o ejecuta manualmente:"
+  echo "  npx serve ."
+  exit 1
 fi

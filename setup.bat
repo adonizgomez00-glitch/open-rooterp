@@ -1,9 +1,9 @@
 @echo off
-title ERP Ligero Offline - Instalacion
+title Open Root ERP - Instalacion
 chcp 65001 >nul
 
 echo ========================================
-echo   ERP Ligero Offline - Instalacion
+echo   Open Root ERP - Instalacion
 echo ========================================
 echo.
 
@@ -56,31 +56,64 @@ if exist "node_modules\dexie\dist\dexie.mjs" (
     )
 )
 
-REM ------ 5. Iniciar servidor ------
+REM ------ 5. Detectar puerto (persistente) ------
+set PORT_FILE=.openroot-erp-port
+if exist "%PORT_FILE%" (
+  set /p PORT=<"%PORT_FILE%"
+  netstat -a -n 2>nul | findstr /C:":%PORT% " >nul 2>&1
+  if %ERRORLEVEL% equ 0 (
+    echo [WARN] Puerto %PORT% en uso, buscando otro...
+    set PORT=3000
+    goto checkport
+  )
+) else (
+  set PORT=3000
+  goto checkport
+)
+
+:checkport
+netstat -a -n 2>nul | findstr /C:":%PORT% " >nul 2>&1
+if %ERRORLEVEL% equ 0 (
+  set /a PORT+=1
+  goto checkport
+)
+echo %PORT%>"%PORT_FILE%"
+
+REM ------ 6. Auto-inicio obligatorio (carpeta de inicio) ------
+echo.
+echo Configurando auto-inicio del servidor...
+set STARTUP_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
+echo @echo off > "%STARTUP_DIR%\OpenRootERP.bat"
+echo cd /d "%~dp0" >> "%STARTUP_DIR%\OpenRootERP.bat"
+echo python3 -m http.server %PORT% >> "%STARTUP_DIR%\OpenRootERP.bat"
+echo [OK] Auto-inicio configurado en carpeta de inicio
+
+REM ------ 7. Iniciar servidor ------
 echo.
 echo ========================================
 echo  Iniciando servidor en:
-echo  http://localhost:3000
+echo  http://localhost:%PORT%
+echo  Puerto guardado en: %PORT_FILE%
 echo ========================================
 echo.
-start http://localhost:3000
+start http://localhost:%PORT%
 
 REM Intentar con python3, python, py
 where python3 >nul 2>nul
 if %ERRORLEVEL% equ 0 (
-    python3 -m http.server 3000
+    python3 -m http.server %PORT%
     if %ERRORLEVEL% equ 0 exit /b 0
 )
 
 where python >nul 2>nul
 if %ERRORLEVEL% equ 0 (
-    python -m http.server 3000
+    python -m http.server %PORT%
     if %ERRORLEVEL% equ 0 exit /b 0
 )
 
 where py >nul 2>nul
 if %ERRORLEVEL% equ 0 (
-    py -3 -m http.server 3000
+    py -3 -m http.server %PORT%
     if %ERRORLEVEL% equ 0 exit /b 0
 )
 

@@ -17,8 +17,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-const CACHE_NAME = 'open-rooterp-v1'
-const STATIC_CACHE = 'open-rooterp-static-v1'
+const CACHE_NAME = 'open-rooterp-v1-1'
+const STATIC_CACHE = 'open-rooterp-static-v1-1'
 
 const PRECACHE_URLS = [
   '/',
