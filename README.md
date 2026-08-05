@@ -186,6 +186,8 @@ chmod +x setup.sh
 setup.bat
 ```
 
+Los scripts instalan dependencias, copian Dexie a `assets/lib`, detectan un **puerto persistente** (`.openroot-erp-port`) y configuran el **auto-inicio del servidor**: systemd/cron `@reboot` en Linux, y un lanzador oculto (`OpenRootERP.vbs`) en la carpeta de Inicio de Windows que arranca sin ventana cmd. Si instalas varias de estas apps, cada una conserva su propia entrada y usa un puerto distinto (3000, 3001, …).
+
 ### Opción B: Manual
 
 ```bash
@@ -210,6 +212,32 @@ python3 -m http.server 3000
 
 ---
 
+## 🗑️ Desinstalación
+
+### Linux / macOS
+
+```bash
+chmod +x uninstall.sh
+./uninstall.sh
+# o: bash uninstall.sh si no tiene permiso de ejecución
+```
+
+### Windows
+
+```batch
+uninstall.bat
+```
+
+Los scripts de desinstalación:
+- Detienen el servidor si está corriendo
+- Eliminan **solo la entrada de auto-inicio de esta app** (cron por proyecto, systemd, lanzador `.vbs`/`.bat` de Windows) sin tocar otras apps ni tus tareas de producción
+- Limpian archivos temporales (`.openroot-erp-port`)
+- **La carpeta del proyecto se elimina manualmente al final** (nunca de forma automática)
+
+Ver [UNINSTALL.md](docs/UNINSTALL.md) para detalles completos.
+
+---
+
 ## 📚 Documentación
 
 | Documento | Descripción |
@@ -220,10 +248,8 @@ python3 -m http.server 3000
 | [TODO](TODO.md) | Checklist 371 líneas, todas las fases ✅ |
 | [ESTADO PROYECTO](docs/PROJECT_STATE.md) | Métricas detalladas, deuda técnica, riesgos, archivos clave |
 | [CONTEXTO](docs/Context.md) | Stack, 14 módulos, utils, RBAC, fixes, skills prioritarias |
-| [INSTALACIÓN](docs/INSTALL.md) | Setup.sh/bat, manual, primer uso, actualización |
-| [TESTS E2E](docs/E2E_TESTS.md) | 76 tests + smoke test visible, helpers, cobertura por módulo |
-| [RESULTADOS QA](docs/QA_RESULTS.md) | 160 tests totales, 100% pass, hallazgos corregidos |
-| [TEMA](docs/THEME_MANAGER.md) | ThemeManager API, singleton, localStorage, uso |
+| [INSTALACIÓN](docs/INSTALL.md) | Instalación y auto-inicio (setup.sh/bat) |
+| [DESINSTALACIÓN](docs/UNINSTALL.md) | Desinstalación (uninstall.sh/bat), limpieza de datos |
 
 ---
 
@@ -235,6 +261,7 @@ open-rooterp/
 ├── manifest.json              # PWA manifest
 ├── sw.js                      # Service Worker
 ├── setup.sh / setup.bat       # Instalación automática
+├── uninstall.sh / uninstall.bat  # Desinstalación automática
 │
 ├── assets/
 │   ├── css/                   # variables, reset, layout, components, utilities
@@ -492,6 +519,8 @@ chmod +x setup.sh
 setup.bat
 ```
 
+The scripts install dependencies, copy Dexie to `assets/lib`, detect a **persistent port** (`.openroot-erp-port`) and configure **server auto-start**: systemd/cron `@reboot` on Linux, and a hidden launcher (`OpenRootERP.vbs`) in the Windows Startup folder that runs without a cmd window. If you install several of these apps, each keeps its own entry and uses a different port (3000, 3001, …).
+
 ### Option B: Manual
 
 ```bash
@@ -541,6 +570,7 @@ open-rooterp/
 ├── manifest.json              # PWA manifest
 ├── sw.js                      # Service Worker
 ├── setup.sh / setup.bat       # Auto-install scripts
+├── uninstall.sh / uninstall.bat  # Auto-uninstall scripts
 │
 ├── assets/
 │   ├── css/                   # variables, reset, layout, components, utilities
