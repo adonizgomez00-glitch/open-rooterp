@@ -84,6 +84,10 @@ import { AccountingRepository } from './repositories/AccountingRepository.js'
 import { AccountingService } from './services/AccountingService.js'
 import { AccountingController } from './controllers/AccountingController.js'
 import { AccountingView } from './views/AccountingView.js'
+import { PLUGINS } from './config/plugins.js'
+import { PluginService } from './services/PluginService.js'
+import { PluginsController } from './controllers/PluginsController.js'
+import { PluginsView } from './views/PluginsView.js'
 
 async function main() {
   await db.open()
@@ -104,6 +108,13 @@ async function main() {
   const authService = new AuthenticationService(userRepo, sessionService, passwordService)
   const systemService = new SystemService(userRepo, roleRepo, permRepo, settingRepo)
   await systemService.ensureDefaultPermissions()
+  const pluginService = new PluginService({
+    settingRepository: settingRepo,
+    permissionRepository: permRepo,
+    roleRepository: roleRepo,
+    db,
+    plugins: PLUGINS
+  })
   const currencySymbol = await settingRepo.get('currency_symbol')
   if (currencySymbol) setCurrencySymbol(currencySymbol)
   const taxRate = await settingRepo.get('tax_rate')
@@ -114,6 +125,7 @@ async function main() {
 
   let header = null
   let _userPermissions = {}
+  let _permissionSet = new Set()
   let _currentUser = null
 
   async function buildPermissions() {
@@ -121,10 +133,12 @@ async function main() {
     _currentUser = session
     if (!session) {
       _userPermissions = {}
+      _permissionSet = new Set()
       return
     }
     const roleId = session.roleId
-    const [canCancelSales, canCancelPurchases, canDeleteSales, canDeletePurchases, canImport, canCreateUsers, canEditUsers, canDeleteUsers, canViewUsers, isAdmin] = await Promise.all([
+    const [rolePermissions, canCancelSales, canCancelPurchases, canDeleteSales, canDeletePurchases, canImport, canCreateUsers, canEditUsers, canDeleteUsers, canViewUsers, isAdmin] = await Promise.all([
+      permissionService.getPermissionsForRole(roleId),
       permissionService.hasPermission(roleId, 'sales.cancel'),
       permissionService.hasPermission(roleId, 'purchases.cancel'),
       permissionService.hasPermission(roleId, 'sales.delete'),
@@ -136,28 +150,19 @@ async function main() {
       permissionService.hasPermission(roleId, 'users.view'),
       permissionService.isAdmin(roleId)
     ])
+    _permissionSet = new Set((rolePermissions || []).map(p => p.name))
     _userPermissions = { canCancelSales, canCancelPurchases, canDeleteSales, canDeletePurchases, canImport, canCreateUsers, canEditUsers, canDeleteUsers, canViewUsers, isAdmin, roleId }
   }
 
   async function startApp() {
     await buildPermissions()
     clearElement(app)
-    const sidebarItems = [
-      { id: 'dashboard', label: 'Dashboard', icon: '\u25a0' },
-      { id: 'products', label: 'Productos', icon: '\u2616' },
-      { id: 'customers', label: 'Clientes', icon: '\u263a' },
-      { id: 'suppliers', label: 'Proveedores', icon: '\u2191' },
-      { id: 'sales', label: 'Ventas', icon: '\u2714' },
-      { id: 'purchases', label: 'Compras', icon: '\u2190' },
-      { id: 'inventory', label: 'Inventario', icon: '\u25a3' },
-      { id: 'reports', label: 'Reportes', icon: '\u2261' },
-      { id: 'accounting', label: 'Contabilidad', icon: '\u2630' },
-      { id: 'settings', label: 'Configuración', icon: '\u2699' },
-      { id: 'exports', label: 'Exportar', icon: '\u2197' },
-      { id: 'imports', label: 'Importar', icon: '\u2193' }
-    ]
-    if (_userPermissions.canViewUsers) {
-      sidebarItems.push({ id: 'users', label: 'Usuarios', icon: '\u263c' })
+    const sidebarItems = []
+    for (const plugin of PLUGINS) {
+      if (!(await pluginService.isEnabled(plugin.id))) continue
+      if (plugin.adminOnly && !_userPermissions.isAdmin) continue
+      if (plugin.viewPermission && !_permissionSet.has(plugin.viewPermission)) continue
+      sidebarItems.push({ id: plugin.id, label: plugin.label, icon: plugin.icon })
     }
     const sidebar = new Sidebar({
       brandName: 'Open RootERP',
@@ -199,8 +204,9 @@ async function main() {
       case 'exports': header.setTitle('Exportar Datos'); loadExports(main); break
       case 'imports': header.setTitle('Importar Datos'); loadImports(main); break
       case 'accounting': header.setTitle('Contabilidad'); loadAccounting(main); break
-      case 'users': header.setTitle('Usuarios'); loadUsers(main); break
-      default: {
+       case 'users': header.setTitle('Usuarios'); loadUsers(main); break
+       case 'plugins': header.setTitle('Plugins'); loadPlugins(main); break
+       default: {
         const div = document.createElement('div')
         div.className = 'placeholder'
         const p = document.createElement('p')
@@ -251,6 +257,12 @@ async function main() {
     const userView = new UserView()
     const userController = new UserController(userRepo, roleRepo, passwordService, userView, _userPermissions)
     userController.init(container)
+  }
+
+  function loadPlugins(container) {
+    const pluginsView = new PluginsView()
+    const pluginsController = new PluginsController(pluginService, pluginsView, () => startApp())
+    pluginsController.init(container)
   }
 
   function loadDashboard(container) {

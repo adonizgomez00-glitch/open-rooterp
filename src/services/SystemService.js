@@ -96,7 +96,8 @@ export class SystemService {
       { name: 'users.delete', description: 'Eliminar usuarios' },
       { name: 'accounting.view', description: 'Ver contabilidad' },
       { name: 'accounting.create', description: 'Crear asientos contables' },
-      { name: 'accounting.edit', description: 'Editar plan de cuentas' }
+      { name: 'accounting.edit', description: 'Editar plan de cuentas' },
+      { name: 'plugins.manage', description: 'Gestionar plugins' }
     ]
     const existing = await this._permissionRepo.findAll()
     const existingNames = new Set(existing.map(p => p.name))

@@ -150,7 +150,8 @@ const sidebarMap = {
   settings: 'Configuración',
   exports: 'Exportar',
   imports: 'Importar',
-  users: 'Usuarios'
+  users: 'Usuarios',
+  plugins: 'Plugins'
 }
 
 const moduleSelectors = {
@@ -166,7 +167,8 @@ const moduleSelectors = {
   dashboard: '#dashboard-grid',
   exports: '#export-entity',
   imports: '.import-dropzone',
-  users: '.users-table-wrapper'
+  users: '.users-table-wrapper',
+  plugins: '.plugins-table-wrapper'
 }
 
 export async function openModule(moduleName) {

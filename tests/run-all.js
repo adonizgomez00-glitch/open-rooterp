@@ -122,6 +122,7 @@ const testModules = [
   { name: 'PermissionService', path: './services/PermissionService.test.js', fn: 'runPermissionServiceTests' },
   { name: 'AuthenticationService', path: './services/AuthenticationService.test.js', fn: 'runAuthenticationServiceTests' },
   { name: 'SystemService', path: './services/SystemService.test.js', fn: 'runSystemServiceTests' },
+  { name: 'PluginService', path: './services/PluginService.test.js', fn: 'runPluginServiceTests' },
   { name: 'LoginController', path: './controllers/LoginController.test.js', fn: 'runLoginControllerTests' },
   { name: 'SetupController', path: './controllers/SetupController.test.js', fn: 'runSetupControllerTests' },
   { name: 'UserController', path: './controllers/UserController.test.js', fn: 'runUserControllerTests' },

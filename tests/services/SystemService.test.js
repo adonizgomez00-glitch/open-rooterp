@@ -213,6 +213,7 @@ async function testEnsureDefaultPermissions() {
   assert(allPerms.length > 0, 'ensureDefaultPermissions debe crear permisos')
   assert(allPerms.some(p => p.name === 'products.view'), 'Debe incluir products.view')
   assert(allPerms.some(p => p.name === 'users.create'), 'Debe incluir users.create')
+  assert(allPerms.some(p => p.name === 'plugins.manage'), 'Debe incluir plugins.manage')
 
   console.log('  ✓ testEnsureDefaultPermissions')
 }

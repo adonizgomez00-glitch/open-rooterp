@@ -49,6 +49,21 @@ Las views de Ventas/Compras ocultan el botón "Anular" si el usuario no tiene pe
 La view de Importar muestra un mensaje de restricción si el usuario no tiene `imports.create`.
 La sección "Usuarios" solo aparece en el sidebar para usuarios con `users.view`.
 
+## Sistema de Plugins
+
+La aplicación expone un sistema de plugins (módulos instalables/desinstalables) en la UI, inspirado en `OpenRootGym`. Todos los módulos son plugins declarados en `src/config/plugins.js` con metadatos: `id`, `label`, `icon`, `group`, `description`, `viewPermission`, `adminOnly`, `required`, `defaultEnabled`, `requires`, `tables` y `permissions`.
+
+- El estado habilitado se persiste en `settings` (`module.<id>.enabled` = `1`/`0`). Si no hay configuración, se usa `defaultEnabled`.
+- El **sidebar se genera dinámicamente** en `app.js`: solo se listan los plugins habilitados, respetando `adminOnly` y `viewPermission`.
+- `PluginService` (`src/services/PluginService.js`) administra:
+  - `install(id)`: habilita el plugin.
+  - `uninstall(id)`: bloquea si es `required` (núcleo), si otro plugin **habilitado** lo `requires`, limpia sus `tables` en una transacción Dexie y revoca sus `permissions` de roles no-administradores.
+- La vista **Plugins** (solo admin) permite instalar/desinstalar; al cambiar el estado se reinicia `startApp()` para refrescar el sidebar.
+- El permiso `plugins.manage` se asegura vía `SystemService.ensureDefaultPermissions`; solo el admin puede abrir la sección Plugins (`adminOnly: true`).
+
+Plugins `required` (no desinstalables): Dashboard, Reportes, Exportar, Importar, Configuración, Usuarios y Plugins.
+Plugins desinstables (con datos propios): Productos, Clientes, Proveedores, Ventas, Compras, Inventario y Contabilidad.
+
 ## Fixes recientes (Jul 2026)
 - **Dark mode — texto ilegible en Contabilidad**: Faltaban `--color-muted` y `--color-bg-secondary` en variables CSS, y el `body` no tenía `color` definido. Se agregaron las variables para ambos temas y se añadió `color: var(--color-text)` al `body`.
 - **Dark mode — badges de estado**: `.status--ok/low/critical`, `.report-stat--ok/low/critical strong`, `.import-results__badge--success/warning`, `.acct-total-ok/error` y `.btn--ghost-danger` ahora usan fondo sólido (verde/amarillo/rojo) con texto blanco en modo oscuro, en vez de solo texto coloreado sobre fondo oscuro.

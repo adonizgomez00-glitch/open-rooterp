@@ -562,6 +562,33 @@
   color: var(--color-danger);
 }
 
+.status--muted {
+  background: var(--color-bg-secondary);
+  color: var(--color-muted);
+}
+
+/* ───────── Toolbar Subtitle ───────── */
+
+.toolbar__subtitle {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-top: 0.25rem;
+}
+
+/* ───────── Text utilities ───────── */
+
+.text-muted {
+  color: var(--color-muted);
+}
+
+/* ───────── Plugins Table ───────── */
+
+.plugins-table-wrapper {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
 /* ───────── Inventory Table ───────── */
 
 .inventory-table-wrapper {

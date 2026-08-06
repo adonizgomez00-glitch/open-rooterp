@@ -84,7 +84,8 @@ open-rooterp/
 │   ├── app.js                 # Bootstrap, router, init
 │   │
 │   ├── config/
-│   │   └── app.js             # Constantes, configuración global
+│   │   ├── app.js             # Constantes, configuración global
+│   │   └── plugins.js         # Registro de plugins (módulos)
 │   │
 │   ├── database/
 │   │   ├── db.js              # Instancia Dexie + schema v8
@@ -133,6 +134,7 @@ open-rooterp/
 │   │   ├── InventoryService.js
 │   │   ├── PasswordService.js
 │   │   ├── PermissionService.js
+│   │   ├── PluginService.js
 │   │   ├── ProductService.js
 │   │   ├── PurchaseService.js
 │   │   ├── ReportService.js
@@ -150,10 +152,12 @@ open-rooterp/
 │   │   ├── ImportController.js
 │   │   ├── InventoryController.js
 │   │   ├── LoginController.js
+│   │   ├── PluginsController.js
 │   │   ├── ProductController.js
 │   │   ├── PurchaseController.js
 │   │   ├── ReportController.js
 │   │   ├── SaleController.js
+│   │   ├── SettingController.js
 │   │   ├── SettingsController.js
 │   │   ├── SetupController.js
 │   │   ├── SupplierController.js
@@ -167,6 +171,7 @@ open-rooterp/
 │   │   ├── ImportView.js
 │   │   ├── InventoryView.js
 │   │   ├── LoginView.js
+│   │   ├── PluginsView.js
 │   │   ├── ProductView.js
 │   │   ├── PurchaseFormView.js
 │   │   ├── PurchaseView.js
@@ -273,6 +278,17 @@ const saleRepo = new SaleRepository(db);
 const saleService = new SaleService(productRepo, saleRepo, inventoryRepo);
 const saleController = new SaleController(saleService, saleView);
 ```
+
+### Sistema de Plugins (módulos)
+
+Todos los módulos están registrados como plugins en `src/config/plugins.js`. El sidebar
+de `src/app.js` se genera dinámicamente filtrando por: plugin habilitado
+(`PluginService.isEnabled`), `adminOnly` y `viewPermission`. La sección **Plugins**
+(admin only, permiso `plugins.manage`) expone `PluginsController` + `PluginsView` para
+instalar/desinstalar. Al cambiar el estado, `startApp()` se vuelve a ejecutar para
+refrescar el sidebar. `PluginService.uninstall` limpia las `tables` del plugin en una
+transacción Dexie y revoca sus `permissions` de roles no-administradores, respetando
+`required` y `requires`.
 
 ---
 

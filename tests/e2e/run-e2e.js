@@ -521,6 +521,41 @@ async function runAll() {
       assert(true, 'Re-login successful')
     }))()
 
+    await (test('39 — Plugins module renders', async () => {
+      await openModule('plugins')
+      await waitFor('.plugins-table-wrapper')
+      await waitFor('.table__body')
+      const rows = await getPage().evaluate(() => {
+        return document.querySelectorAll('.table__body .table__row').length
+      })
+      assert(rows >= 1, `Plugins table has ${rows} row(s) (>= 1)`)
+      const coreLabels = await getPage().evaluate(() => {
+        return Array.from(document.querySelectorAll('.text-muted')).map(el => el.textContent)
+      })
+      assert(coreLabels.includes('Núcleo'), 'Required (core) plugins show Núcleo label')
+    }))()
+
+    await (test('40 — Install/uninstall non-required plugin keeps app stable', async () => {
+      await openModule('plugins')
+      await waitFor('.plugins-table-wrapper')
+      const uninstallBtn = await getPage().$(`.table__row .btn--ghost-danger[data-id="inventory"]`)
+      assert(uninstallBtn !== null, 'Inventory uninstall button exists')
+      await uninstallBtn.click()
+      await waitFor('.confirm-dialog__message')
+      await acceptConfirm()
+      await waitForToastContaining('desinstalado')
+      // Re-enable inventory before continuing
+      await openModule('plugins')
+      const installBtn = await getPage().$(`.table__row .btn--ghost[data-id="inventory"]`)
+      assert(installBtn !== null, 'Inventory install button exists after uninstall')
+      await installBtn.click()
+      await waitForToastContaining('instalado')
+      await wait(500)
+      // Sidebar should reflect re-enabled inventory
+      const inventoryItem = await getPage().$(`.sidebar__item[data-id="inventory"]`)
+      assert(inventoryItem !== null, 'Sidebar shows inventory after re-install')
+    }))()
+
     const results = getResults()
     console.log(`\n=== Resumen E2E ===`)
     console.log(`Tests: ${testCount} | Pasaron: ${testPassed} | Fallaron: ${testFailed}`)
